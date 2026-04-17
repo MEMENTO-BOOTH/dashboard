@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wireframe — Détail Borne</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f0f0;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    /* ─── LAYOUT SHELL ─── */
+    .shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: #fafafa;
+      border-right: 1.5px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 16px 14px;
+      border-bottom: 1.5px solid #ddd;
+    }
+    .sidebar-logo-box {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: #ddd;
+      border: 1.5px solid #bbb;
+    }
+    .sidebar-logo-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #222;
+      letter-spacing: .3px;
+    }
+    .sidebar-nav {
+      flex: 1;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow-y: auto;
+    }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      padding: 10px 8px 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #555;
+      cursor: default;
+    }
+    .nav-item.active {
+      background: #e8e8e8;
+      color: #111;
+      font-weight: 600;
+    }
+    .nav-item.sub {
+      padding-left: 28px;
+      font-size: 12.5px;
+      color: #666;
+    }
+    .nav-item.sub.active {
+      background: #e0e0e0;
+      color: #111;
+    }
+    .nav-icon {
+      width: 16px; height: 16px;
+      background: #ccc;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .sidebar-footer {
+      border-top: 1.5px solid #ddd;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: #ccc;
+      border: 1.5px solid #bbb;
+      flex-shrink: 0;
+    }
+    .avatar-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .avatar-name { font-size: 12px; font-weight: 600; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .avatar-role { font-size: 11px; color: #888; }
+
+    /* ─── MAIN AREA ─── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* ─── NAVBAR ─── */
+    .navbar {
+      height: 48px;
+      background: #fafafa;
+      border-bottom: 1.5px solid #ccc;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      flex-shrink: 0;
+    }
+    .navbar-toggle {
+      width: 20px; height: 14px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      cursor: default;
+    }
+    .navbar-toggle span {
+      display: block;
+      height: 2px;
+      background: #888;
+      border-radius: 2px;
+    }
+    .navbar-divider {
+      width: 1px; height: 20px;
+      background: #ddd;
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex: 1;
+      max-width: 320px;
+      height: 30px;
+      border: 1.5px solid #ccc;
+      border-radius: 7px;
+      background: #fff;
+      padding: 0 10px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    .search-icon {
+      width: 14px; height: 14px;
+      background: #bbb;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .navbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .navbar-btn {
+      width: 30px; height: 30px;
+      border-radius: 6px;
+      background: #eee;
+      border: 1.5px solid #ddd;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .navbar-btn-icon {
+      width: 14px; height: 14px;
+      background: #bbb;
+      border-radius: 3px;
+    }
+    .navbar-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #ccc;
+      border: 1.5px solid #bbb;
+    }
+
+    /* ─── CONTENT ─── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+      background: #f0f0f0;
+    }
+
+    /* ─── PARC LAYOUT (inner sidebar + content) ─── */
+    .parc-layout {
+      display: flex;
+      height: 100%;
+    }
+    .parc-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: #fafafa;
+      border-right: 1.5px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .parc-sidebar-top {
+      padding: 12px 10px 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .parc-sidebar-search {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      height: 30px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      padding: 0 9px;
+      font-size: 11.5px;
+      color: #aaa;
+    }
+    .parc-sidebar-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      padding: 10px 12px 4px;
+    }
+    .parc-sidebar-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .parc-borne-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: 7px;
+      cursor: default;
+    }
+    .parc-borne-item.active {
+      background: #e8e8e8;
+    }
+    .parc-borne-logo {
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ddd;
+      border: 1px solid #ccc;
+      flex-shrink: 0;
+    }
+    .parc-borne-info { min-width: 0; flex: 1; }
+    .parc-borne-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #222;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .parc-borne-item:not(.active) .parc-borne-name { font-weight: 400; color: #555; }
+    .parc-borne-city {
+      font-size: 11px;
+      color: #aaa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .parc-borne-status {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #aaa;
+      flex-shrink: 0;
+    }
+    .parc-borne-status.online { background: #666; }
+    .parc-nav-item { display: none; } /* supprimé */
+    .parc-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 28px 40px;
+      min-width: 0;
+    }
+
+    /* ─── BREADCRUMB ─── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 0 12px;
+      font-size: 12.5px;
+      color: #888;
+    }
+    .breadcrumb-icon {
+      width: 15px; height: 15px;
+      background: #bbb;
+      border-radius: 3px;
+    }
+    .breadcrumb-sep {
+      font-size: 12px;
+      color: #ccc;
+    }
+    .breadcrumb a {
+      color: #888;
+      text-decoration: none;
+      border-bottom: 1px solid #ddd;
+    }
+    .breadcrumb-current {
+      color: #444;
+      font-weight: 500;
+      border-bottom: 1px solid #aaa;
+    }
+
+    /* ─── SECTION WRAPPER ─── */
+    .section {
+      margin-bottom: 32px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+      letter-spacing: -.2px;
+    }
+    .section-desc {
+      font-size: 12.5px;
+      color: #888;
+      margin-top: 3px;
+    }
+    .section-divider {
+      height: 1px;
+      background: #ddd;
+      margin: 28px 0;
+    }
+
+    /* ─── CARD ─── */
+    .card {
+      background: #fff;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .card-body { padding: 20px; }
+    .card-footer {
+      padding: 12px 20px;
+      border-top: 1.5px solid #eee;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* ─── PROFILE CARD ─── */
+    .profile-card {
+      background: #fff;
+      border: 1.5px solid #ddd;
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 6px;
+    }
+    .profile-logo {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: #e8e8e8;
+      border: 2px solid #ccc;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      color: #aaa;
+    }
+    .profile-info { flex: 1; min-width: 0; }
+    .profile-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+    }
+    .profile-address {
+      font-size: 12.5px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .profile-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 11.5px;
+      font-weight: 600;
+      border: 1.5px solid #bbb;
+      background: #f4f4f4;
+      color: #444;
+    }
+    .badge-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #888;
+    }
+    .badge-dot.online { background: #555; }
+
+    /* ─── ANCHOR NAV ─── */
+    .anchor-nav {
+      display: flex;
+      gap: 0;
+      border-bottom: 1.5px solid #ddd;
+      margin-bottom: 28px;
+      overflow-x: auto;
+    }
+    .anchor-tab {
+      padding: 10px 16px;
+      font-size: 12.5px;
+      color: #888;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      cursor: default;
+    }
+    .anchor-tab.active {
+      color: #111;
+      font-weight: 600;
+      border-bottom-color: #333;
+    }
+
+    /* ─── FORM ROW ─── */
+    .form-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .form-row {
+      display: flex;
+      gap: 32px;
+      padding: 18px 0;
+      border-bottom: 1px solid #eee;
+      align-items: flex-start;
+    }
+    .form-row:last-child { border-bottom: none; }
+    .form-label-col {
+      width: 200px;
+      flex-shrink: 0;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #222;
+    }
+    .form-hint {
+      font-size: 11.5px;
+      color: #999;
+      margin-top: 3px;
+    }
+    .form-control-col { flex: 1; max-width: 400px; }
+    .input-field {
+      width: 100%;
+      height: 34px;
+      border: 1.5px solid #ccc;
+      border-radius: 7px;
+      background: #fff;
+      padding: 0 10px;
+      font-size: 12.5px;
+      color: #555;
+      display: flex; align-items: center;
+    }
+    .textarea-field {
+      width: 100%;
+      height: 60px;
+      border: 1.5px solid #ccc;
+      border-radius: 7px;
+      background: #fff;
+      padding: 8px 10px;
+      font-size: 12.5px;
+      color: #555;
+      display: flex; align-items: flex-start;
+    }
+    .avatar-upload {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .avatar-circle {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: #eee;
+      border: 1.5px solid #ccc;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: #aaa; text-align: center;
+    }
+    .upload-btn {
+      font-size: 12.5px;
+      color: #555;
+      border-bottom: 1px solid #aaa;
+      cursor: default;
+    }
+
+    /* ─── TABLE ─── */
+    .data-table {
+      width: 100%;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .table-header {
+      display: grid;
+      background: #f5f5f5;
+      border-bottom: 1.5px solid #ddd;
+      padding: 10px 18px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      gap: 16px;
+    }
+    .table-row {
+      display: grid;
+      padding: 12px 18px;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+    .table-row:last-child { border-bottom: none; }
+    .table-row.alt { background: #fafafa; }
+    .cell-muted { color: #888; }
+    .cell-right { text-align: right; }
+
+    .horaires-grid { grid-template-columns: 130px 1fr 1fr 70px; }
+    .equipment-grid { grid-template-columns: 1fr 1fr; }
+
+    .time-input {
+      height: 30px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      padding: 0 8px;
+      font-size: 12px;
+      color: #555;
+      width: 90px;
+      display: inline-flex; align-items: center;
+    }
+    .checkbox-wrap {
+      display: flex; align-items: center; justify-content: center;
+    }
+    .checkbox {
+      width: 16px; height: 16px;
+      border: 1.5px solid #bbb;
+      border-radius: 4px;
+      background: #fff;
+    }
+    .checkbox.checked {
+      background: #555;
+      border-color: #555;
+    }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 16px;
+      border-radius: 7px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: default;
+      border: 1.5px solid transparent;
+    }
+    .btn-primary {
+      background: #222;
+      color: #fff;
+      border-color: #222;
+    }
+    .btn-secondary {
+      background: #fff;
+      color: #333;
+      border-color: #ccc;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: #555;
+      border-color: transparent;
+    }
+    .btn-destructive {
+      background: #f0f0f0;
+      color: #555;
+      border: 1.5px dashed #aaa;
+    }
+    .btn-icon {
+      width: 14px; height: 14px;
+      background: currentColor;
+      border-radius: 2px;
+      opacity: 0.5;
+    }
+    .btn-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
+    }
+
+    /* ─── PAPER USAGE ─── */
+    .paper-card {
+      background: #fff;
+      border: 1.5px solid #ddd;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+    }
+    .paper-chart-area {
+      flex: 1;
+      min-width: 0;
+      padding: 20px;
+      border-right: 1.5px solid #eee;
+    }
+    .paper-chart-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .paper-chart-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+    }
+    .legend {
+      display: flex;
+      gap: 14px;
+      margin-top: 6px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: #888;
+    }
+    .legend-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #555;
+    }
+    .legend-dot.prev { background: #ccc; }
+    .chart-placeholder {
+      height: 160px;
+      background: repeating-linear-gradient(
+        to right,
+        #f5f5f5 0px, #f5f5f5 18px,
+        #eee 18px, #eee 20px
+      );
+      border-radius: 6px;
+      display: flex;
+      align-items: flex-end;
+      padding: 10px 14px;
+      gap: 6px;
+      position: relative;
+      border: 1px solid #eee;
+    }
+    .chart-note {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      color: #bbb;
+      white-space: nowrap;
+      font-style: italic;
+    }
+    .chart-bar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+    }
+    .chart-bar {
+      width: 100%;
+      max-width: 14px;
+      border-radius: 3px 3px 0 0;
+      background: #888;
+    }
+    .chart-bar.prev { border-radius: 0 0 3px 3px; background: #ccc; }
+    .chart-label { font-size: 9px; color: #bbb; margin-top: 4px; }
+    .paper-right {
+      width: 220px;
+      flex-shrink: 0;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .select-pill {
+      height: 28px;
+      padding: 0 10px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 11.5px;
+      color: #666;
+      width: 130px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .gauge-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .gauge-circle {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      border: 10px solid #ddd;
+      border-top-color: #555;
+      border-right-color: #555;
+      border-bottom-color: #555;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .gauge-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #222;
+    }
+    .gauge-label {
+      font-size: 11px;
+      color: #aaa;
+      text-align: center;
+    }
+    .paper-count {
+      text-align: center;
+    }
+    .paper-count-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #222;
+    }
+    .paper-count-sub {
+      font-size: 11px;
+      color: #aaa;
+    }
+
+    /* ─── UPDATES ─── */
+    .updates-card {
+      background: #fff;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+    }
+    .update-version {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.2;
+    }
+    .update-label {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
+    .update-status {
+      font-size: 12.5px;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ─── TIMELINE ─── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .timeline-left {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 0 32px;
+    }
+    .timeline-right {
+      flex: 1;
+      padding: 0 0 32px;
+    }
+    .timeline-center {
+      width: 36px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .timeline-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #e8e8e8;
+      border: 1.5px solid #ccc;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .timeline-dot-icon {
+      width: 12px; height: 12px;
+      background: #888;
+      border-radius: 3px;
+    }
+    .timeline-line {
+      width: 1.5px;
+      flex: 1;
+      min-height: 40px;
+      background: repeating-linear-gradient(
+        to bottom, #ccc 0, #ccc 5px, transparent 5px, transparent 10px
+      );
+      margin-top: 4px;
+    }
+    .timeline-date {
+      font-size: 12px;
+      color: #aaa;
+      padding-top: 5px;
+      text-align: right;
+    }
+    .timeline-date.left-date { text-align: left; }
+    .timeline-card {
+      background: #fff;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.05);
+    }
+    .timeline-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 6px;
+    }
+    .timeline-card-desc {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.5;
+    }
+    .timeline-placeholder {
+      flex: 1;
+    }
+
+    /* ─── DANGER ZONE ─── */
+    .danger-box {
+      border: 1.5px dashed #bbb;
+      border-radius: 10px;
+      padding: 20px;
+      background: #fafafa;
+    }
+    .danger-header {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .danger-icon-box {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      background: #e0e0e0;
+      border: 1.5px solid #bbb;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .danger-icon {
+      width: 16px; height: 16px;
+      background: #888;
+      border-radius: 3px;
+    }
+    .danger-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #333;
+    }
+    .danger-desc {
+      font-size: 12px;
+      color: #888;
+      margin-top: 3px;
+    }
+    .btn-danger-outline {
+      height: 34px;
+      padding: 0 16px;
+      border: 1.5px solid #999;
+      border-radius: 7px;
+      background: #fff;
+      color: #555;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: default;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    /* ─── ANNOTATION ─── */
+    .annotation {
+      background: #fffbe6;
+      border: 1.5px dashed #e0c94f;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #7a6500;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* ─── WATERMARK ─── */
+    .watermark {
+      position: fixed;
+      bottom: 16px;
+      right: 20px;
+      font-size: 10px;
+      color: #ccc;
+      letter-spacing: .5px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ═══ SIDEBAR PRINCIPALE ═══ -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-box"></div>
+      <span class="sidebar-logo-name">Memento</span>
+    </div>
+
+    <div class="sidebar-nav">
+      <span class="nav-label">Principal</span>
+      <div class="nav-item">
+        <div class="nav-icon"></div>
+        Dashboard
+      </div>
+      <div class="nav-item active">
+        <div class="nav-icon"></div>
+        Parc
+      </div>
+      <div class="nav-item sub active">
+        <div class="nav-icon"></div>
+        Bornes
+      </div>
+      <div class="nav-item sub">
+        <div class="nav-icon"></div>
+        Interventions
+      </div>
+
+      <span class="nav-label">Système</span>
+      <div class="nav-item">
+        <div class="nav-icon"></div>
+        Paramètres
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="avatar"></div>
+      <div class="avatar-info">
+        <div class="avatar-name">Collins</div>
+        <div class="avatar-role">Développeur</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ZONE PRINCIPALE ═══ -->
+  <div class="main">
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+      <div class="navbar-toggle">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="navbar-divider"></div>
+      <div class="search-bar">
+        <div class="search-icon"></div>
+        Rechercher...
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-btn"><div class="navbar-btn-icon"></div></div>
+        <div class="navbar-btn"><div class="navbar-btn-icon"></div></div>
+        <div class="navbar-avatar"></div>
+      </div>
+    </div>
+
+    <!-- CONTENU -->
+    <div class="content">
+      <div class="parc-layout">
+
+        <!-- Sidebar Parc — liste des bornes -->
+        <div class="parc-sidebar">
+          <div class="parc-sidebar-top">
+            <div class="parc-sidebar-search">
+              <div class="search-icon"></div>
+              Rechercher une borne…
+            </div>
+          </div>
+          <span class="parc-sidebar-title">Bornes (5)</span>
+          <div class="parc-sidebar-list">
+
+            <div class="parc-borne-item active">
+              <div class="parc-borne-logo"></div>
+              <div class="parc-borne-info">
+                <div class="parc-borne-name">Le Zinc</div>
+                <div class="parc-borne-city">Paris</div>
+              </div>
+              <div class="parc-borne-status online"></div>
+            </div>
+
+            <div class="parc-borne-item">
+              <div class="parc-borne-logo"></div>
+              <div class="parc-borne-info">
+                <div class="parc-borne-name">L'Imaginaire</div>
+                <div class="parc-borne-city">Lyon</div>
+              </div>
+              <div class="parc-borne-status online"></div>
+            </div>
+
+            <div class="parc-borne-item">
+              <div class="parc-borne-logo"></div>
+              <div class="parc-borne-info">
+                <div class="parc-borne-name">Le Refuge</div>
+                <div class="parc-borne-city">Bordeaux</div>
+              </div>
+              <div class="parc-borne-status"></div>
+            </div>
+
+            <div class="parc-borne-item">
+              <div class="parc-borne-logo"></div>
+              <div class="parc-borne-info">
+                <div class="parc-borne-name">La Brasserie</div>
+                <div class="parc-borne-city">Marseille</div>
+              </div>
+              <div class="parc-borne-status online"></div>
+            </div>
+
+            <div class="parc-borne-item">
+              <div class="parc-borne-logo"></div>
+              <div class="parc-borne-info">
+                <div class="parc-borne-name">Le Comptoir</div>
+                <div class="parc-borne-city">Lille</div>
+              </div>
+              <div class="parc-borne-status"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Détail Borne -->
+        <div class="parc-content">
+
+          <!-- Breadcrumb -->
+          <nav class="breadcrumb">
+            <div class="breadcrumb-icon"></div>
+            <span class="breadcrumb-sep">›</span>
+            <a href="#">Bornes</a>
+            <span class="breadcrumb-sep">›</span>
+            <span class="breadcrumb-current" aria-current="page">Le Zinc</span>
+          </nav>
+
+          <!-- ─── PROFIL ─── -->
+          <div class="profile-card">
+            <div class="profile-logo">Photo</div>
+            <div class="profile-info">
+              <div class="profile-name">Le Zinc</div>
+              <div class="profile-address">75 Rue Saint-Denis, Paris 75001</div>
+            </div>
+            <div class="profile-meta">
+              <div class="badge">
+                <div class="badge-dot online"></div>
+                En ligne
+              </div>
+            </div>
+          </div>
+          <div class="annotation">⬆ Carte de profil : statut en temps réel visible d'un coup d'œil. Photo cliquable pour upload direct.</div>
+
+          <div class="section-divider"></div>
+
+          <!-- ─── PROFIL FORM ─── -->
+          <div class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Profil</div>
+                <div class="section-desc">Informations générales de la borne</div>
+              </div>
+              <div class="btn btn-ghost">Annuler</div>
+            </div>
+
+            <div class="card">
+              <div class="card-body">
+                <div class="form-section">
+                  <div class="form-row">
+                    <div class="form-label-col">
+                      <div class="form-label">Photo</div>
+                      <div class="form-hint">Logo ou photo du bar</div>
+                    </div>
+                    <div class="form-control-col">
+                      <div class="avatar-upload">
+                        <div class="avatar-circle">Logo</div>
+                        <div class="upload-btn">Changer la photo</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label-col">
+                      <div class="form-label">Nom du bar</div>
+                      <div class="form-hint">Affiché sur le dashboard</div>
+                    </div>
+                    <div class="form-control-col">
+                      <div class="input-field">Le Zinc</div>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label-col">
+                      <div class="form-label">Ville</div>
+                    </div>
+                    <div class="form-control-col">
+                      <div class="input-field">Paris</div>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label-col">
+                      <div class="form-label">Adresse</div>
+                      <div class="form-hint">Adresse complète du lieu</div>
+                    </div>
+                    <div class="form-control-col">
+                      <div class="input-field">75 Rue Saint-Denis, 75001 Paris</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="btn btn-secondary">Annuler</div>
+                <div class="btn btn-primary">Enregistrer</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- ─── HORAIRES ─── -->
+          <div class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Horaires</div>
+                <div class="section-desc">Heures d'ouverture par jour de la semaine</div>
+              </div>
+            </div>
+
+            <div class="data-table">
+              <div class="table-header horaires-grid">
+                <span>Jour</span>
+                <span>Ouverture</span>
+                <span>Fermeture</span>
+                <span style="text-align:center">Fermé</span>
+              </div>
+              <div class="table-row horaires-grid">
+                <span>Lundi</span>
+                <div class="time-input">09:00</div>
+                <div class="time-input">21:00</div>
+                <div class="checkbox-wrap"><div class="checkbox"></div></div>
+              </div>
+              <div class="table-row horaires-grid alt">
+                <span>Mardi</span>
+                <div class="time-input">09:00</div>
+                <div class="time-input">21:00</div>
+                <div class="checkbox-wrap"><div class="checkbox"></div></div>
+              </div>
+              <div class="table-row horaires-grid">
+                <span>Mercredi</span>
+                <div class="time-input">09:00</div>
+                <div class="time-input">21:00</div>
+                <div class="checkbox-wrap"><div class="checkbox"></div></div>
+              </div>
+              <div class="table-row horaires-grid alt">
+                <span>Jeudi</span>
+                <div class="time-input">09:00</div>
+                <div class="time-input">21:00</div>
+                <div class="checkbox-wrap"><div class="checkbox"></div></div>
+              </div>
+              <div class="table-row horaires-grid">
+                <span>Vendredi</span>
+                <div class="time-input">09:00</div>
+                <div class="time-input">21:00</div>
+                <div class="checkbox-wrap"><div class="checkbox"></div></div>
+              </div>
+              <div class="table-row horaires-grid alt">
+                <span>Samedi</span>
+                <div class="time-input cell-muted" style="opacity:.4">—</div>
+                <div class="time-input cell-muted" style="opacity:.4">—</div>
+                <div class="checkbox-wrap"><div class="checkbox checked"></div></div>
+              </div>
+              <div class="table-row horaires-grid">
+                <span>Dimanche</span>
+                <div class="time-input cell-muted" style="opacity:.4">—</div>
+                <div class="time-input cell-muted" style="opacity:.4">—</div>
+                <div class="checkbox-wrap"><div class="checkbox checked"></div></div>
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <div class="btn btn-secondary">Annuler</div>
+              <div class="btn btn-primary">Enregistrer</div>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- ─── UTILISATION PAPIER ─── -->
+          <div class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Utilisation papier</div>
+                <div class="section-desc">Consommation sur la période sélectionnée</div>
+              </div>
+            </div>
+
+            <div class="paper-card">
+              <!-- Graphique -->
+              <div class="paper-chart-area">
+                <div class="paper-chart-header">
+                  <div>
+                    <div class="paper-chart-title">Consommation</div>
+                    <div class="legend">
+                      <div class="legend-item">
+                        <div class="legend-dot"></div>
+                        Période courante
+                      </div>
+                      <div class="legend-item">
+                        <div class="legend-dot prev"></div>
+                        Période précédente
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recharts placeholder -->
+                <div class="chart-placeholder">
+                  <span class="chart-note">Graphique Recharts — barres comparatives (courante / précédente)</span>
+                  <div class="chart-bar-group">
+                    <div class="chart-bar" style="height:70px"></div>
+                    <div class="chart-bar prev" style="height:40px"></div>
+                  </div>
+                  <div class="chart-bar-group">
+                    <div class="chart-bar" style="height:90px"></div>
+                    <div class="chart-bar prev" style="height:60px"></div>
+                  </div>
+                  <div class="chart-bar-group">
+                    <div class="chart-bar" style="height:50px"></div>
+                    <div class="chart-bar prev" style="height:30px"></div>
+                  </div>
+                  <div class="chart-bar-group">
+                    <div class="chart-bar" style="height:110px"></div>
+                    <div class="chart-bar prev" style="height:80px"></div>
+                  </div>
+                  <div class="chart-bar-group">
+                    <div class="chart-bar" style="height:65px"></div>
+                    <div class="chart-bar prev" style="height:50px"></div>
+                  </div>
+                  <div class="chart-bar-group">
+                    <div class="chart-bar" style="height:85px"></div>
+                    <div class="chart-bar prev" style="height:55px"></div>
+                  </div>
+                  <div class="chart-bar-group">
+                    <div class="chart-bar" style="height:45px"></div>
+                    <div class="chart-bar prev" style="height:25px"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Jauge -->
+              <div class="paper-right">
+                <div class="select-pill">
+                  30 jours <span>▾</span>
+                </div>
+                <div class="gauge-wrap">
+                  <div class="gauge-circle">
+                    <div class="gauge-value">72%</div>
+                  </div>
+                  <div class="gauge-label">restant</div>
+                </div>
+                <div class="paper-count">
+                  <div class="paper-count-sub">Aujourd'hui</div>
+                  <div class="paper-count-value">243 <span style="font-size:13px;color:#aaa;font-weight:400">/ 340</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- ─── ÉQUIPEMENTS ─── -->
+          <div class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Logiciels &amp; Matériels</div>
+                <div class="section-desc">État des composants de la borne</div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <!-- Logiciels -->
+              <div class="data-table">
+                <div class="table-header" style="grid-template-columns:1fr">
+                  <span>Logiciels</span>
+                </div>
+                <div class="table-row" style="grid-template-columns:1fr 1fr">
+                  <span>DSLRBooth</span>
+                  <span class="cell-muted cell-right">v3.12.1</span>
+                </div>
+                <div class="table-row alt" style="grid-template-columns:1fr 1fr">
+                  <span>Cash Interface</span>
+                  <span class="cell-muted cell-right">v1.4.0</span>
+                </div>
+              </div>
+              <!-- Matériels -->
+              <div class="data-table">
+                <div class="table-header" style="grid-template-columns:1fr">
+                  <span>Matériels</span>
+                </div>
+                <div class="table-row" style="grid-template-columns:1fr 1fr">
+                  <span>Appareil photo</span>
+                  <span class="cell-muted cell-right">SN-48291</span>
+                </div>
+                <div class="table-row alt" style="grid-template-columns:1fr 1fr">
+                  <span>Imprimante</span>
+                  <span class="cell-muted cell-right">DNP DS620</span>
+                </div>
+                <div class="table-row" style="grid-template-columns:1fr 1fr">
+                  <span>Statut imprimante</span>
+                  <span class="cell-muted cell-right">Opérationnel</span>
+                </div>
+                <div class="table-row alt" style="grid-template-columns:1fr 1fr">
+                  <span>Réseau Wi-Fi</span>
+                  <span class="cell-muted cell-right">Memento-5G</span>
+                </div>
+                <div class="table-row" style="grid-template-columns:1fr 1fr">
+                  <span>Espace disque libre</span>
+                  <span class="cell-muted cell-right">142 Go</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- ─── MISES À JOUR ─── -->
+          <div class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Mises à jour</div>
+                <div class="section-desc">Version de l'agent installé sur la borne</div>
+              </div>
+            </div>
+
+            <div class="updates-card">
+              <div>
+                <div class="update-label">Version installée</div>
+                <div class="update-version">v2.4.1</div>
+              </div>
+              <div class="update-status">
+                <div class="badge-dot online"></div>
+                À jour
+              </div>
+              <div class="btn btn-secondary" style="opacity:.4;cursor:default">Mettre à jour</div>
+            </div>
+            <div class="annotation">⬆ Bouton "Mettre à jour" visible mais désactivé quand la borne est à jour. Actif si une nouvelle version est disponible.</div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- ─── INTERVENTIONS ─── -->
+          <div class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Interventions réalisées</div>
+                <div class="section-desc">Historique des interventions techniques — données Supabase</div>
+              </div>
+              <div class="btn btn-secondary">+ Ajouter</div>
+            </div>
+
+            <div class="timeline">
+              <!-- Item 1 -->
+              <div class="timeline-item">
+                <div class="timeline-left">
+                  <div class="timeline-date">Il y a 2 mois</div>
+                </div>
+                <div class="timeline-center">
+                  <div class="timeline-dot"><div class="timeline-dot-icon"></div></div>
+                  <div class="timeline-line"></div>
+                </div>
+                <div class="timeline-right">
+                  <div class="timeline-card">
+                    <div class="timeline-card-title">Bourrage Papier</div>
+                    <div class="timeline-card-desc">Collins a remplacé le papier bloqué dans l'imprimante à L'Imaginaire.</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Item 2 -->
+              <div class="timeline-item">
+                <div class="timeline-left">
+                  <div class="timeline-card">
+                    <div class="timeline-card-title">Remplacement Caméra</div>
+                    <div class="timeline-card-desc">Gauthier a remplacé la caméra par un nouveau modèle.</div>
+                  </div>
+                </div>
+                <div class="timeline-center">
+                  <div class="timeline-dot"><div class="timeline-dot-icon"></div></div>
+                  <div class="timeline-line"></div>
+                </div>
+                <div class="timeline-right">
+                  <div class="timeline-date left-date">Il y a 24 jours</div>
+                </div>
+              </div>
+              <!-- Item 3 -->
+              <div class="timeline-item">
+                <div class="timeline-left">
+                  <div class="timeline-date">Il y a 2 semaines</div>
+                </div>
+                <div class="timeline-center">
+                  <div class="timeline-dot"><div class="timeline-dot-icon"></div></div>
+                </div>
+                <div class="timeline-right">
+                  <div class="timeline-card">
+                    <div class="timeline-card-title">Changement TPE</div>
+                    <div class="timeline-card-desc">Romain a changé le TPE car il ne se déclenchait plus automatiquement.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- ─── ZONE DE SUPPRESSION ─── -->
+          <div class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Supprimer la borne</div>
+                <div class="section-desc">Action irréversible — toutes les données seront perdues</div>
+              </div>
+            </div>
+
+            <div class="danger-box">
+              <div class="danger-header">
+                <div class="danger-icon-box">
+                  <div class="danger-icon"></div>
+                </div>
+                <div>
+                  <div class="danger-title">Supprimer cette borne supprimera aussi toutes ses données.</div>
+                  <div class="danger-desc">Assurez-vous d'avoir effectué une sauvegarde avant de continuer.</div>
+                </div>
+              </div>
+              <div class="btn-danger-outline">
+                Supprimer la borne
+              </div>
+            </div>
+            <div class="annotation">⬆ La zone de danger utilise une bordure pointillée et un style distinctif. Le bouton de suppression est en rouge dans l'implémentation finale (couleur <code>--destructive</code>).</div>
+          </div>
+
+        </div><!-- /parc-content -->
+      </div><!-- /parc-layout -->
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<div class="watermark">Wireframe lo-fi — Kombai · /parc/bornes/[id]</div>
+
+</body>
+</html>

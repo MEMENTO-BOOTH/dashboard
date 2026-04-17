@@ -16,23 +16,29 @@ export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
       <Link href="/" className="shrink-0 text-secondary-foreground hover:text-foreground">
         <Home className="size-[18px]" />
       </Link>
-      {items.map((item, i) => (
-        <div key={item.label} className="flex items-center gap-2.5">
-          <ChevronRight className="size-[14px] shrink-0 text-muted-foreground" />
-          {item.href && i < items.length - 1 ? (
-            <Link
-              href={item.href}
-              className="whitespace-nowrap text-[14px] font-normal leading-5 text-secondary-foreground hover:text-foreground"
-            >
-              {item.label}
-            </Link>
-          ) : (
-            <span className="whitespace-nowrap text-[14px] font-normal leading-5 text-secondary-foreground">
-              {item.label}
-            </span>
-          )}
-        </div>
-      ))}
+      {items.map((item, i) => {
+        const isLast = i === items.length - 1;
+        return (
+          <div key={item.label} className="flex items-center gap-2.5">
+            <ChevronRight className="size-[14px] shrink-0 text-muted-foreground" />
+            {item.href && !isLast ? (
+              <Link
+                href={item.href}
+                className="whitespace-nowrap text-[14px] font-normal leading-5 text-muted-foreground hover:text-foreground"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span
+                aria-current={isLast ? "page" : undefined}
+                className="whitespace-nowrap text-[14px] font-medium leading-5 text-foreground"
+              >
+                {item.label}
+              </span>
+            )}
+          </div>
+        );
+      })}
     </nav>
   );
 }
