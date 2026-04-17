@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -13,13 +13,28 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": false,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/app/*": ["./app/*"],
+      "@/components/*": ["./components/*"],
+      "@/features/*": ["./features/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/config/*": ["./config/*"],
+      "@/styles/*": ["./styles/*"]
     }
   },
   "include": [

@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Capsule Dashboard
 
-## Getting Started
+Dashboard de supervision pour les bornes Memento Booth. Next.js 16 · React 19 · TypeScript strict · Tailwind v4 · shadcn/ui · Supabase.
 
-First, run the development server:
+## Quick start
 
 ```bash
+cp .env.example .env.local
+# remplir les variables Supabase
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commandes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Commande | Description |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Build production |
+| `npm run check` | Lint + format + import sort (Biome) |
+| `npm run check:ci` | Lint read-only (pour CI) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run validate` | Check + typecheck + build |
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework** — Next.js 16 (App Router, RSC, Server Actions)
+- **UI** — React 19, Tailwind v4, shadcn/ui, Radix primitives, Lucide icons
+- **Data** — Supabase (Postgres + Auth + Realtime), Zod pour validation
+- **DX** — Biome (lint + format), Husky, lint-staged, commitlint
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Voir [AGENTS.md](./AGENTS.md) pour les conventions du projet.
 
-## Deploy on Vercel
+```
+app/              Routing (Server Components first)
+features/         Domaines métier (bornes, transactions, alertes, …)
+components/ui/    Primitives shadcn
+components/layout/ Sidebar, Navbar, Shell
+lib/              supabase/, env.ts, logger.ts, utils/
+config/           site.ts, dashboard.ts
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Conventions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Conventional commits** enforced (feat, fix, chore, docs, refactor, …)
+- **Max 150 lignes / fichier**, complexité cognitive ≤ 15 (Biome)
+- **Validation Zod** aux frontières (env, Supabase, forms)
+- **Pas de `any`**, pas de `@ts-ignore`
