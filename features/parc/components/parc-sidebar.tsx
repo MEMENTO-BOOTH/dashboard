@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils/cn";
 import { parcNav } from "@/config/parc";
+import { cn } from "@/lib/utils/cn";
 
 export function ParcSidebar() {
   const pathname = usePathname();
@@ -17,9 +17,7 @@ export function ParcSidebar() {
         {parcNav.flatMap((section) =>
           section.items.map((item) => {
             const isActive =
-              item.href === section.href
-                ? pathname.startsWith(item.href)
-                : pathname === item.href;
+              item.href === section.href ? pathname.startsWith(item.href) : pathname === item.href;
             return (
               <Link
                 key={item.href}

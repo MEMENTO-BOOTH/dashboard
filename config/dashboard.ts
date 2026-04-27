@@ -1,16 +1,29 @@
 import type { LucideIcon } from "lucide-react";
-import { CreditCard, LayoutDashboard, MapPinned, Users } from "lucide-react";
+import { ChartNoAxesCombined, Coins, LayoutDashboard, MapPinned, Users } from "lucide-react";
+import type { Permission } from "@/features/auth/permissions";
 
 export type NavItem = {
   title: string;
   href: string;
   icon: LucideIcon;
+  requiredPermission?: Permission;
   disabled?: boolean;
 };
 
 export const dashboardNav: NavItem[] = [
   { title: "Home", href: "/", icon: LayoutDashboard },
   { title: "Mon parc", href: "/parc", icon: MapPinned },
-  { title: "Transactions", href: "/transactions", icon: CreditCard },
-  { title: "Utilisateurs", href: "/utilisateurs", icon: Users },
+  { title: "Jetons", href: "/jetons", icon: Coins, requiredPermission: "jetons.view" },
+  {
+    title: "Finance",
+    href: "/transactions",
+    icon: ChartNoAxesCombined,
+    requiredPermission: "finance.view",
+  },
+  {
+    title: "Utilisateurs",
+    href: "/utilisateurs",
+    icon: Users,
+    requiredPermission: "utilisateurs.manage",
+  },
 ];

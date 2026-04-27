@@ -1,7 +1,8 @@
 "use client";
 
-import { EllipsisVertical, Store } from "lucide-react";
+import { EllipsisVertical } from "lucide-react";
 import { DialogContent, DialogDescription, DialogRoot, DialogTitle } from "@/components/ui/dialog";
+import { InitialsAvatar } from "@/components/ui/initials-avatar";
 import { SegmentedBar } from "@/components/ui/segmented-bar";
 import type { PaperBorne } from "../data";
 import { TOTAL_SHEETS } from "../data";
@@ -41,17 +42,11 @@ export function PaperOverlay({
           <div className="flex max-h-[50vh] flex-col gap-4 overflow-y-auto">
             {bornes.map((borne) => (
               <div key={borne.id} className="flex items-center gap-3 px-6">
-                <div className="relative flex size-9 shrink-0 items-center justify-center overflow-clip rounded-[6px]">
-                  {borne.avatar ? (
-                    // biome-ignore lint/performance/noImgElement: avatar
-                    <img src={borne.avatar} alt="" className="absolute inset-0 size-full object-cover" />
-                  ) : (
-                    <>
-                      <div className="absolute inset-0 bg-primary opacity-10" />
-                      <Store className="size-[18px] text-primary" aria-hidden />
-                    </>
-                  )}
-                </div>
+                <InitialsAvatar
+                  name={borne.name}
+                  logoUrl={borne.avatar}
+                  className="size-9 shrink-0 rounded-full text-[13px]"
+                />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <p className="truncate text-[16px] font-normal leading-6 text-card-foreground">
                     {borne.name}

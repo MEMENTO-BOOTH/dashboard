@@ -14,7 +14,19 @@ type Result = {
 
 const PREVIEW_LIMIT = 3;
 const FULL_LIST_LIMIT = 200;
+const PAPER_MAX_SHEETS = 80; // bornes affichées uniquement si ≤ 80 feuilles restantes
 const ACTIVE_STATUTS = ["ouverte", "assignee"] as const;
+
+// Alertes physiques qui rendent la lecture du niveau papier non fiable.
+// Si une borne a ce type d'alerte active, on l'exclut du widget "Papier à changer"
+// (sinon on affiche "0 feuilles" alors que c'est juste le capot ouvert).
+const BLOCKS_PAPER_READING = new Set([
+  "capot_ouvert",
+  "imprimante_deconnectee",
+  "fin_ruban",
+  "bourrage_papier",
+  "erreur_mecanique",
+]);
 
 export async function getBugsAndPaperBornes(): Promise<Result> {
   const supabase = createAdminClient();
@@ -37,12 +49,14 @@ export async function getBugsAndPaperBornes(): Promise<Result> {
         .from("heartbeats")
         .select("borne_id, feuilles_restantes")
         .not("feuilles_restantes", "is", null)
+        .lte("feuilles_restantes", PAPER_MAX_SHEETS)
         .order("feuilles_restantes", { ascending: true })
         .limit(FULL_LIST_LIMIT),
       supabase
         .from("heartbeats")
         .select("borne_id", { count: "exact", head: true })
-        .not("feuilles_restantes", "is", null),
+        .not("feuilles_restantes", "is", null)
+        .lte("feuilles_restantes", PAPER_MAX_SHEETS),
       supabase.from("bornes").select("id, nom_lieu, logo_url"),
     ]);
 
@@ -65,9 +79,16 @@ export async function getBugsAndPaperBornes(): Promise<Result> {
     };
   });
 
+  // Bornes avec alertes physiques empêchant la lecture fiable du papier → à exclure
+  const bornesBlocked = new Set<string>();
+  for (const a of alertesRes.data) {
+    if (BLOCKS_PAPER_READING.has(a.type)) bornesBlocked.add(a.borne_id);
+  }
+
   const allPaperBornes: PaperBorne[] = heartbeatsRes.data.flatMap((h) => {
     const borne = borneById.get(h.borne_id);
     if (!borne || h.feuilles_restantes === null) return [];
+    if (bornesBlocked.has(borne.id)) return [];
     return [
       { id: borne.id, name: borne.nom_lieu, avatar: borne.logo_url, sheets: h.feuilles_restantes },
     ];

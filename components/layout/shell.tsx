@@ -1,17 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import type { Permissions } from "@/features/auth/permissions";
 import { cn } from "@/lib/utils/cn";
 import { Navbar } from "./navbar";
 import type { SidebarMode } from "./navbar/sidebar-mode-menu";
 import { Sidebar } from "./sidebar";
+import type { SidebarFooterProps } from "./sidebar/sidebar-footer";
 
-export function Shell({ children }: { children: React.ReactNode }) {
+export function Shell({
+  children,
+  user,
+  permissions,
+}: {
+  children: React.ReactNode;
+  user: SidebarFooterProps;
+  permissions: Permissions;
+}) {
   const [mode, setMode] = useState<SidebarMode>("expanded");
   const [hovering, setHovering] = useState(false);
 
-  const collapsed =
-    mode === "collapsed" || (mode === "expand-on-hover" && !hovering);
+  const collapsed = mode === "collapsed" || (mode === "expand-on-hover" && !hovering);
 
   return (
     <div className="flex h-screen w-full items-stretch overflow-hidden bg-background">
@@ -23,7 +32,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           collapsed ? "w-[64px]" : "w-[260px]",
         )}
       >
-        <Sidebar collapsed={collapsed} />
+        <Sidebar collapsed={collapsed} user={user} permissions={permissions} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <Navbar mode={mode} onModeChange={setMode} />

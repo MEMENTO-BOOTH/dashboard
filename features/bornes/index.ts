@@ -4,8 +4,8 @@ export {
   getBorneHeartbeat,
   getBorneHoraires,
   getBornePaperHistory,
-  getBorneUpdates,
   getBornesWithLatestState,
+  getBorneUpdates,
 } from "./api";
 export { BornesTable } from "./bornes-table";
 export type { BorneTableRow } from "./schemas";

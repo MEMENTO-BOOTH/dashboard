@@ -1,61 +1,82 @@
 import "server-only";
 import { Store } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAllTransactions } from "@/lib/supabase/fetch-all";
+import {
+  addDays,
+  formatEUR,
+  formatPct,
+  formatPeriodRange,
+  startOfMonday,
+} from "@/lib/utils/format";
 import type { PerformanceRow } from "../data";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const ROWS_LIMIT = 2;
 
-function formatEuro(amount: number): string {
-  return `€${Math.round(amount)}`;
-}
+export type PerformanceData = {
+  rows: PerformanceRow[];
+  refRange: string;
+  prevRange: string;
+};
 
-function formatPercent(value: number): string {
-  const sign = value >= 0 ? "+" : "-";
-  const abs = Math.abs(value).toFixed(2).replace(".", ",");
-  return `${sign}${abs}%`;
-}
-
-export async function getPerformanceRows(now: Date = new Date()): Promise<PerformanceRow[]> {
+export async function getPerformanceRows(now: Date = new Date()): Promise<PerformanceData> {
   const supabase = createAdminClient();
 
-  const thisWeekStart = new Date(now.getTime() - 7 * DAY_MS);
-  const lastWeekStart = new Date(now.getTime() - 14 * DAY_MS);
+  // Compare 2 dernières semaines ISO complètes (lundi → dimanche)
+  const currentMonday = startOfMonday(now);
+  const refStart = addDays(currentMonday, -7);
+  const refEnd = currentMonday;
+  const prevStart = addDays(refStart, -7);
 
-  const [bornesRes, txRes] = await Promise.all([
-    supabase.from("bornes").select("id, nom_lieu"),
-    supabase
-      .from("transactions")
-      .select("borne_id, montant, paiement_at")
-      .gte("paiement_at", lastWeekStart.toISOString()),
+  const [bornesRes, tx] = await Promise.all([
+    supabase.from("bornes").select("id, nom_lieu, logo_url"),
+    fetchAllTransactions(
+      supabase,
+      {
+        sinceISO: prevStart.toISOString(),
+        untilISO: refEnd.toISOString(),
+      },
+      ["borne_id", "montant", "paiement_at"],
+    ),
   ]);
 
   if (bornesRes.error) throw bornesRes.error;
-  if (txRes.error) throw txRes.error;
 
-  const thisWeekByBorne = new Map<string, number>();
-  const lastWeekByBorne = new Map<string, number>();
+  const refByBorne = new Map<string, number>();
+  const prevByBorne = new Map<string, number>();
 
-  for (const tx of txRes.data) {
-    const paidAt = new Date(tx.paiement_at).getTime();
-    const amount = Number(tx.montant);
-    const bucket = paidAt >= thisWeekStart.getTime() ? thisWeekByBorne : lastWeekByBorne;
-    bucket.set(tx.borne_id, (bucket.get(tx.borne_id) ?? 0) + amount);
+  for (const t of tx) {
+    if (!t.borne_id) continue;
+    const ts = new Date(t.paiement_at).getTime();
+    if (ts >= refStart.getTime()) {
+      refByBorne.set(t.borne_id, (refByBorne.get(t.borne_id) ?? 0) + t.montant);
+    } else {
+      prevByBorne.set(t.borne_id, (prevByBorne.get(t.borne_id) ?? 0) + t.montant);
+    }
   }
 
-  const scored = bornesRes.data.map((b) => {
-    const thisWk = thisWeekByBorne.get(b.id) ?? 0;
-    const lastWk = lastWeekByBorne.get(b.id) ?? 0;
-    const delta = lastWk > 0 ? ((thisWk - lastWk) / lastWk) * 100 : thisWk > 0 ? 100 : 0;
-    return { name: b.nom_lieu, thisWk, delta };
+  const scored = (bornesRes.data ?? []).map((b) => {
+    const ref = refByBorne.get(b.id) ?? 0;
+    const prev = prevByBorne.get(b.id) ?? 0;
+    const delta = prev > 0 ? ((ref - prev) / prev) * 100 : ref > 0 ? 100 : 0;
+    return { id: b.id, name: b.nom_lieu, logoUrl: b.logo_url, ref, delta };
   });
 
   scored.sort((a, b) => a.delta - b.delta);
 
-  return scored.slice(0, ROWS_LIMIT).map((r) => ({
+  const rows: PerformanceRow[] = scored.slice(0, ROWS_LIMIT).map((r) => ({
+    id: r.id,
     name: r.name,
-    value: formatEuro(r.thisWk),
-    percent: formatPercent(r.delta),
+    logoUrl: r.logoUrl,
+    value: formatEUR(r.ref),
+    percent: formatPct(r.delta),
+    deltaPct: r.delta,
     brand: Store,
   }));
+
+  return {
+    rows,
+    refRange: formatPeriodRange(refStart, refEnd),
+    prevRange: formatPeriodRange(prevStart, refStart),
+  };
 }

@@ -2,8 +2,8 @@
 
 import { EllipsisVertical, Store } from "lucide-react";
 import { DialogContent, DialogDescription, DialogRoot, DialogTitle } from "@/components/ui/dialog";
+import { alertIconFor, alertLabelFor } from "../alerts";
 import type { Bug } from "../data";
-import { alertIconFor } from "../lib/alert-icon";
 
 // Figma 16482:114427 "Top products by Sales" — verbatim structure.
 // Card: bg-card border border-border rounded-[14px] shadow-sm overflow-clip py-6
@@ -53,7 +53,11 @@ export function BugsOverlay({
                   <div className="relative flex size-9 shrink-0 items-center justify-center overflow-clip rounded-[6px]">
                     {bug.avatar ? (
                       // biome-ignore lint/performance/noImgElement: avatar
-                      <img src={bug.avatar} alt="" className="absolute inset-0 size-full object-cover" />
+                      <img
+                        src={bug.avatar}
+                        alt=""
+                        className="absolute inset-0 size-full object-cover"
+                      />
                     ) : (
                       <>
                         <div className="absolute inset-0 bg-primary opacity-10" />
@@ -63,7 +67,7 @@ export function BugsOverlay({
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col">
                     <p className="truncate text-[16px] font-normal leading-6 text-card-foreground">
-                      {bug.title}
+                      {alertLabelFor(bug.title)}
                     </p>
                     <p className="truncate text-[14px] font-normal leading-5 text-muted-foreground">
                       {bug.place}

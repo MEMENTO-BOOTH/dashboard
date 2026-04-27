@@ -9,7 +9,7 @@ export function CriticalProgress({
   title,
   value,
   label,
-  emoji = "😔",
+  emoji,
 }: {
   title: string;
   value: number;
@@ -43,17 +43,16 @@ export function CriticalProgress({
           className="pointer-events-none absolute h-5 w-[6px] -translate-x-1/2 rounded-[6px] border-2 border-primary-foreground bg-primary shadow-sm"
           style={{ left: `${clamped}%` }}
         />
-        {/* Tooltip — arrow bottom touches bar top (-top-6 = 24px) */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-6 flex -translate-x-1/2 flex-col items-center"
-          style={{ left: `${clamped}%` }}
-        >
-          <div className="flex items-center rounded-full bg-foreground px-1.5 py-0.5">
-            <span className="text-[14px] leading-[20px]">{emoji}</span>
+        {/* Emoji à la position du handle, sans fond */}
+        {emoji ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-6 -translate-x-1/2"
+            style={{ left: `${clamped}%` }}
+          >
+            <span className="text-[16px] leading-5">{emoji}</span>
           </div>
-          <div className="size-0 border-x-[4px] border-t-[4px] border-x-transparent border-t-foreground" />
-        </div>
+        ) : null}
       </div>
     </div>
   );

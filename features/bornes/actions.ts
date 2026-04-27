@@ -2,12 +2,26 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { can, type Permission } from "@/features/auth/permissions";
+import { getSessionUser } from "@/features/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { type BorneSummary, getBorneSummary } from "./summary-api";
+
+async function requirePermission(perm: Permission): Promise<void> {
+  const session = await getSessionUser();
+  if (!session) throw new Error("Non authentifié");
+  if (!can(session.permissions, perm)) throw new Error("Permission refusée");
+}
+
+export async function fetchBorneSummary(id: string): Promise<BorneSummary | null> {
+  return getBorneSummary(id);
+}
 
 export async function updateBorneProfile(
   id: string,
   data: { nom_lieu: string; ville: string; adresse: string },
 ) {
+  await requirePermission("bornes.edit");
   const supabase = createAdminClient();
 
   const { error } = await supabase
@@ -31,6 +45,7 @@ export async function updateHoraires(
   borneId: string,
   horaires: { jour: number; ouverture: string; fermeture: string; ferme: boolean }[],
 ) {
+  await requirePermission("bornes.edit");
   const supabase = createAdminClient();
 
   await supabase.from("horaires").delete().eq("borne_id", borneId);
@@ -43,6 +58,7 @@ export async function updateHoraires(
 }
 
 export async function deleteBorne(id: string) {
+  await requirePermission("bornes.delete");
   const supabase = createAdminClient();
 
   const { error } = await supabase.from("bornes").delete().eq("id", id);
@@ -54,6 +70,7 @@ export async function deleteBorne(id: string) {
 }
 
 export async function uploadBorneLogo(id: string, formData: FormData) {
+  await requirePermission("bornes.edit");
   const file = formData.get("file") as File | null;
   if (!file) throw new Error("No file");
 

@@ -24,7 +24,7 @@ export function LayoutToggle({
         aria-label="Vue grille"
         onClick={() => onChange("grid")}
         className={cn(
-          "flex h-7 items-center justify-center rounded-[6px] px-3 py-1",
+          "flex h-8 items-center justify-center rounded-[6px] px-3 py-1",
           mode === "grid" && "bg-input shadow-sm",
         )}
       >
@@ -35,7 +35,7 @@ export function LayoutToggle({
         aria-label="Vue liste"
         onClick={() => onChange("list")}
         className={cn(
-          "flex h-7 items-center justify-center rounded-[10px] px-2 py-1",
+          "flex h-8 items-center justify-center rounded-[10px] px-2 py-1",
           mode === "list" && "bg-input shadow-sm",
         )}
       >

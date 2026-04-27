@@ -95,7 +95,9 @@ export async function getBorneUpdates(id: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("updates_bornes")
-    .select("id, statut, message_erreur, mise_a_jour_at, created_at, updates(version, notes, publiee_at)")
+    .select(
+      "id, statut, message_erreur, mise_a_jour_at, created_at, updates(version, notes, publiee_at)",
+    )
     .eq("borne_id", id)
     .order("created_at", { ascending: false })
     .limit(20);
@@ -159,8 +161,16 @@ export async function getBorneById(id: string): Promise<BorneTableRow> {
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   const [borneRes, hbRes, alerteRes, txRes] = await Promise.all([
-    supabase.from("bornes").select("id, code, nom_lieu, logo_url, statut, partenaire_id").eq("id", id).single(),
-    supabase.from("heartbeats").select("borne_id, timestamp, feuilles_restantes").eq("borne_id", id).maybeSingle(),
+    supabase
+      .from("bornes")
+      .select("id, code, nom_lieu, logo_url, statut, partenaire_id")
+      .eq("id", id)
+      .single(),
+    supabase
+      .from("heartbeats")
+      .select("borne_id, timestamp, feuilles_restantes")
+      .eq("borne_id", id)
+      .maybeSingle(),
     supabase
       .from("alertes")
       .select("id, borne_id, type, message, gravite, statut, timestamp")

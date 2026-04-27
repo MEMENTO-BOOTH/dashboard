@@ -37,7 +37,7 @@ export function DialogContent({
       <DialogOverlay />
       <Primitive.Content
         className={cn(
-          "fixed left-1/2 top-[20%] z-50 grid w-full max-w-[508px] -translate-x-1/2 gap-0 rounded-[8px] border border-input bg-background shadow-lg",
+          "fixed left-1/2 top-[20%] z-50 block -translate-x-1/2 rounded-[8px] border border-input bg-background shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
           className,
         )}

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Monitor, Wrench } from "lucide-react";
+import { Monitor } from "lucide-react";
 
 export type ParcNavItem = {
   title: string;
@@ -21,7 +21,7 @@ export const parcNav: ParcNavSection[] = [
     href: "/parc/bornes",
     defaultOpen: true,
     items: [
-      { title: "Borne", href: "/parc/bornes" },
+      { title: "Bornes", href: "/parc/bornes" },
       { title: "Interventions", href: "/parc/interventions" },
     ],
   },

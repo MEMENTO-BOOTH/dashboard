@@ -8,11 +8,7 @@ import {
   DropdownMenuRoot,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  BORNE_TYPE_LABELS,
-  BORNE_TYPE_VALUES,
-  useBorneFilters,
-} from "../hooks/use-borne-filters";
+import { BORNE_TYPE_LABELS, BORNE_TYPE_VALUES, useBorneFilters } from "../hooks/use-borne-filters";
 
 export function TableHeader() {
   const { q, setQ, type, setType } = useBorneFilters();

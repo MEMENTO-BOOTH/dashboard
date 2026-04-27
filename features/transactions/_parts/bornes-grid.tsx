@@ -1,0 +1,80 @@
+"use client";
+
+import { Search } from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { InitialsAvatar } from "@/components/ui/initials-avatar";
+import { type LayoutMode, LayoutToggle } from "@/components/ui/layout-toggle";
+import type { BorneCard } from "../api";
+
+export function BornesTransactionsGrid({ bornes }: { bornes: BorneCard[] }) {
+  const [search, setSearch] = useState("");
+  const [layout, setLayout] = useState<LayoutMode>("grid");
+
+  const filtered = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    if (!needle) return bornes;
+    return bornes.filter((b) => b.nom_lieu.toLowerCase().includes(needle));
+  }, [bornes, search]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex h-9 w-[320px] items-center gap-1.5 rounded-[8px] border border-input bg-background px-3 py-1 shadow-xs">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Rechercher une borne..."
+            aria-label="Rechercher"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="min-w-0 flex-1 bg-transparent text-[14px] font-normal leading-5 text-foreground outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+        <LayoutToggle mode={layout} onChange={setLayout} />
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="py-12 text-center text-[14px] text-muted-foreground">Aucune borne.</p>
+      ) : layout === "grid" ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filtered.map((b) => (
+            <Link
+              key={b.id}
+              href={`/transactions/bornes/${b.id}`}
+              className="flex items-center gap-4 rounded-[14px] border border-border bg-card px-5 py-4 shadow-sm transition-colors hover:bg-accent"
+            >
+              <InitialsAvatar
+                name={b.nom_lieu}
+                logoUrl={b.logo_url}
+                className="size-12 rounded-full text-[14px]"
+              />
+              <p className="min-w-0 flex-1 truncate text-[16px] font-semibold leading-6 text-card-foreground">
+                {b.nom_lieu}
+              </p>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {filtered.map((b) => (
+            <Link
+              key={b.id}
+              href={`/transactions/bornes/${b.id}`}
+              className="flex items-center gap-4 rounded-[14px] border border-border bg-card px-6 py-4 shadow-sm transition-colors hover:bg-accent"
+            >
+              <InitialsAvatar
+                name={b.nom_lieu}
+                logoUrl={b.logo_url}
+                className="size-12 rounded-full text-[14px]"
+              />
+              <p className="min-w-0 flex-1 truncate text-[16px] font-semibold leading-6 text-card-foreground">
+                {b.nom_lieu}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

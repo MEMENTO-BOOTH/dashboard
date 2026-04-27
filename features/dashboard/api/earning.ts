@@ -1,82 +1,98 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAllTransactions } from "@/lib/supabase/fetch-all";
+import { addDays, startOfMonday } from "@/lib/utils/format";
 import type { EarningBar, EarningData } from "../data";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const BAR_LABELS = ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"] as const;
-const MAX_BAR_HEIGHT = 120;
 
-function startOfMonday(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  const day = d.getDay(); // 0=Sun..6=Sat
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  return d;
+function dayDiff(a: Date, b: Date): number {
+  const aMid = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
+  const bMid = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
+  return Math.round((aMid - bMid) / DAY_MS);
 }
 
-function formatEuroShort(amount: number): string {
-  if (amount >= 1000) return `€${(amount / 1000).toFixed(1)}K`;
-  return `€${Math.round(amount)}`;
-}
+const DAY_LABELS = [
+  { short: "Lu", full: "Lundi" },
+  { short: "Ma", full: "Mardi" },
+  { short: "Me", full: "Mercredi" },
+  { short: "Je", full: "Jeudi" },
+  { short: "Ve", full: "Vendredi" },
+  { short: "Sa", full: "Samedi" },
+  { short: "Di", full: "Dimanche" },
+] as const;
 
 export async function getEarningInsights(now: Date = new Date()): Promise<EarningData> {
   const supabase = createAdminClient();
 
   const thisWeekStart = startOfMonday(now);
-  const lastWeekStart = new Date(thisWeekStart.getTime() - 7 * DAY_MS);
+  const lastWeekStart = addDays(thisWeekStart, -7);
 
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("montant, paiement_at")
-    .gte("paiement_at", lastWeekStart.toISOString());
+  const tx = await fetchAllTransactions(supabase, { sinceISO: lastWeekStart.toISOString() }, [
+    "montant",
+    "paiement_at",
+  ]);
 
-  if (error) throw error;
+  // Pour comparer un même tronçon, on prend les tx de la semaine passée jusqu'au
+  // même décalage (en ms) que celui écoulé cette semaine.
+  const elapsedMs = now.getTime() - thisWeekStart.getTime();
+  const lastWeekSamePointMs = lastWeekStart.getTime() + elapsedMs;
 
-  const dayTotals = new Array<number>(7).fill(0);
-  let thisWeekTotal = 0;
-  let lastWeekTotal = 0;
+  const thisWeekByDay = new Array<number>(7).fill(0);
+  const lastWeekByDay = new Array<number>(7).fill(0);
+  let totalThisWeek = 0;
+  let totalLastWeek = 0; // semaine passée complète (pour les bars jour par jour)
+  let totalLastWeekElapsed = 0; // même tronçon que cette semaine (pour le delta global)
 
-  for (const tx of data) {
-    const paidAt = new Date(tx.paiement_at);
-    const dayIndex = Math.floor((paidAt.getTime() - thisWeekStart.getTime()) / DAY_MS);
-    const amount = Number(tx.montant);
+  for (const t of tx) {
+    const paidAt = new Date(t.paiement_at);
+    const ts = paidAt.getTime();
+    const dayIndex = dayDiff(paidAt, thisWeekStart);
     if (dayIndex >= 0 && dayIndex < 7) {
-      dayTotals[dayIndex] = (dayTotals[dayIndex] ?? 0) + amount;
-      thisWeekTotal += amount;
+      thisWeekByDay[dayIndex] = (thisWeekByDay[dayIndex] ?? 0) + t.montant;
+      totalThisWeek += t.montant;
     } else if (dayIndex >= -7 && dayIndex < 0) {
-      lastWeekTotal += amount;
+      lastWeekByDay[dayIndex + 7] = (lastWeekByDay[dayIndex + 7] ?? 0) + t.montant;
+      totalLastWeek += t.montant;
+      if (ts < lastWeekSamePointMs) totalLastWeekElapsed += t.montant;
     }
   }
 
-  const maxDay = Math.max(...dayTotals, 1);
-  const todayIndex = Math.floor((now.getTime() - thisWeekStart.getTime()) / DAY_MS);
+  const todayIndex = Math.max(0, Math.min(6, dayDiff(now, thisWeekStart)));
 
-  const bars: EarningBar[] = BAR_LABELS.map((label, i) => ({
-    label,
-    height: Math.round(((dayTotals[i] ?? 0) / maxDay) * MAX_BAR_HEIGHT),
-    active: i === todayIndex,
-  }));
+  const bars: EarningBar[] = DAY_LABELS.map((lbl, i) => {
+    const amount = thisWeekByDay[i] ?? 0;
+    const amountLastWeek = lastWeekByDay[i] ?? 0;
+    const changePct =
+      amountLastWeek > 0
+        ? Math.round(((amount - amountLastWeek) / amountLastWeek) * 100)
+        : amount > 0
+          ? 100
+          : 0;
+    return {
+      label: lbl.short,
+      fullLabel: lbl.full,
+      amount,
+      amountLastWeek,
+      changePct,
+      active: i === todayIndex,
+      future: i > todayIndex,
+    };
+  });
 
+  // Variation = même tronçon de semaine (lundi → maintenant) vs semaine passée au
+  // même point. Évite le faux "−100 %" en début de lundi.
   const variationPct =
-    lastWeekTotal > 0
-      ? Math.round(((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100)
-      : thisWeekTotal > 0
+    totalLastWeekElapsed > 0
+      ? Math.round(((totalThisWeek - totalLastWeekElapsed) / totalLastWeekElapsed) * 100)
+      : totalThisWeek > 0
         ? 100
         : 0;
-  const variation = `${variationPct >= 0 ? "+" : ""}${variationPct}%`;
-
-  const description =
-    lastWeekTotal === 0
-      ? "CA de cette semaine. Aucune donnée la semaine précédente."
-      : variationPct >= 0
-        ? "CA de cette semaine vs. semaine dernière — ça progresse."
-        : "CA de cette semaine vs. semaine dernière — en baisse.";
 
   return {
-    value: formatEuroShort(thisWeekTotal),
-    variation,
-    description,
+    totalThisWeek,
+    totalLastWeek: totalLastWeekElapsed,
+    variationPct,
     bars,
   };
 }

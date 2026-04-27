@@ -1,11 +1,15 @@
-import { Ellipsis, Eye, Store, Trash2 } from "lucide-react";
+import { InitialsAvatar } from "@/components/ui/initials-avatar";
 import { alertMeta, formatCA, formatRelativeActivity, papierColor } from "../lib/format";
 import type { BorneTableRow } from "../schemas";
+import { BorneSummaryDialog } from "./borne-summary-dialog";
 import { ProgressBar } from "./progress-bar";
 
 // Figma 39543 — row h=56, columns: 49 + 350 + 160 + 160 + 160 + 200 + 110 = 1189px
 
-export function TableRow({ row }: { row: BorneTableRow }) {
+const GRID_WITH_CA = "49px minmax(350px,1fr) 160px 160px 160px 200px 80px";
+const GRID_WITHOUT_CA = "49px minmax(350px,1fr) 160px 160px 200px 80px";
+
+export function TableRow({ row, showCa = true }: { row: BorneTableRow; showCa?: boolean }) {
   const alert = row.alert ? alertMeta(row.alert) : null;
   const AlertIcon = alert?.icon;
   const percent =
@@ -14,7 +18,10 @@ export function TableRow({ row }: { row: BorneTableRow }) {
       : Math.round((row.feuillesRestantes / row.feuillesMax) * 100);
 
   return (
-    <div className="grid h-14 grid-cols-[49px_350px_160px_160px_160px_200px_110px] items-center border-t border-border">
+    <div
+      className="grid h-14 items-center gap-x-3 border-t border-border"
+      style={{ gridTemplateColumns: showCa ? GRID_WITH_CA : GRID_WITHOUT_CA }}
+    >
       <div className="flex justify-center">
         <input
           type="checkbox"
@@ -24,14 +31,11 @@ export function TableRow({ row }: { row: BorneTableRow }) {
       </div>
 
       <div className="flex items-center gap-3 px-2">
-        <div className="relative flex size-9 shrink-0 items-center justify-center overflow-clip rounded-full bg-muted text-muted-foreground">
-          {row.logoUrl ? (
-            // biome-ignore lint/performance/noImgElement: avatar
-            <img src={row.logoUrl} alt="" className="absolute inset-0 size-full object-cover" />
-          ) : (
-            <Store className="size-[18px]" aria-hidden />
-          )}
-        </div>
+        <InitialsAvatar
+          name={row.name}
+          logoUrl={row.logoUrl}
+          className="size-9 rounded-full text-[13px]"
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <p className="truncate text-[14px] font-medium leading-5 text-foreground">{row.name}</p>
           <p className="truncate text-[14px] font-normal leading-5 text-muted-foreground">
@@ -52,14 +56,16 @@ export function TableRow({ row }: { row: BorneTableRow }) {
       </div>
 
       <div className="px-2">
-        <span className="text-[14px] leading-5 text-muted-foreground">
+        <span className="text-[14px] leading-5 text-muted-foreground" suppressHydrationWarning>
           {formatRelativeActivity(row.lastActivityAt)}
         </span>
       </div>
 
-      <div className="px-2">
-        <span className="text-[14px] leading-5 text-foreground">{formatCA(row.caToday)}</span>
-      </div>
+      {showCa ? (
+        <div className="px-2">
+          <span className="text-[14px] leading-5 text-foreground">{formatCA(row.caToday)}</span>
+        </div>
+      ) : null}
 
       <div className="flex items-center gap-3 px-2">
         <div className="w-[134px]">
@@ -69,27 +75,7 @@ export function TableRow({ row }: { row: BorneTableRow }) {
       </div>
 
       <div className="flex items-center gap-3 pl-4">
-        <button
-          type="button"
-          aria-label="Delete"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Trash2 className="size-[18px]" />
-        </button>
-        <button
-          type="button"
-          aria-label="View"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Eye className="size-[18px]" />
-        </button>
-        <button
-          type="button"
-          aria-label="More"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Ellipsis className="size-[18px]" />
-        </button>
+        <BorneSummaryDialog id={row.id} name={row.name} logoUrl={row.logoUrl} />
       </div>
     </div>
   );

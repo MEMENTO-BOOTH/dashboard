@@ -27,9 +27,14 @@ function FormRow({
   );
 }
 
-export function BorneProfile({ borne }: { borne: BorneDetail }) {
+export function BorneProfile({
+  borne,
+  canEdit = false,
+}: {
+  borne: BorneDetail;
+  canEdit?: boolean;
+}) {
   const [nom, setNom] = useState(borne.nom_lieu);
-  const [adresse, setAdresse] = useState(borne.adresse ?? "");
   const [ville, setVille] = useState(borne.ville);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(borne.logo_url);
   const [saved, setSaved] = useState(false);
@@ -37,20 +42,16 @@ export function BorneProfile({ borne }: { borne: BorneDetail }) {
   const [isPending, startTransition] = useTransition();
   const [isUploading, setIsUploading] = useState(false);
 
-  const isDirty =
-    nom !== borne.nom_lieu ||
-    adresse !== (borne.adresse ?? "") ||
-    ville !== borne.ville;
+  const isDirty = nom !== borne.nom_lieu || ville !== borne.ville;
 
   function onCancel() {
     setNom(borne.nom_lieu);
-    setAdresse(borne.adresse ?? "");
     setVille(borne.ville);
   }
 
   function onSave() {
     startTransition(async () => {
-      await updateBorneProfile(borne.id, { nom_lieu: nom, ville, adresse });
+      await updateBorneProfile(borne.id, { nom_lieu: nom, ville, adresse: borne.adresse ?? "" });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     });
@@ -86,7 +87,7 @@ export function BorneProfile({ borne }: { borne: BorneDetail }) {
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            disabled={isUploading}
+            disabled={!canEdit || isUploading}
             className="group relative flex size-16 shrink-0 items-center justify-center overflow-clip rounded-full bg-muted"
           >
             {avatarPreview ? (
@@ -116,14 +117,16 @@ export function BorneProfile({ borne }: { borne: BorneDetail }) {
             className="hidden"
             onChange={onFileChange}
           />
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={isUploading}
-            className="text-[14px] font-medium leading-5 text-foreground underline underline-offset-4 hover:text-primary"
-          >
-            Changer la photo
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={isUploading}
+              className="text-[14px] font-medium leading-5 text-foreground underline underline-offset-4 hover:text-primary"
+            >
+              Changer la photo
+            </button>
+          ) : null}
         </div>
       </FormRow>
 
@@ -132,6 +135,8 @@ export function BorneProfile({ borne }: { borne: BorneDetail }) {
           type="text"
           value={nom}
           onChange={(e) => setNom(e.target.value)}
+          readOnly={!canEdit}
+          disabled={!canEdit}
           className="h-9 w-full rounded-[8px] border border-input bg-background px-3 text-[14px] font-normal leading-5 text-foreground shadow-xs outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
         />
       </FormRow>
@@ -141,19 +146,13 @@ export function BorneProfile({ borne }: { borne: BorneDetail }) {
           type="text"
           value={ville}
           onChange={(e) => setVille(e.target.value)}
+          readOnly={!canEdit}
+          disabled={!canEdit}
           className="h-9 w-full rounded-[8px] border border-input bg-background px-3 text-[14px] font-normal leading-5 text-foreground shadow-xs outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
         />
       </FormRow>
 
-      <FormRow label="Adresse" description="Adresse complète du lieu.">
-        <input
-          type="text"
-          value={adresse}
-          onChange={(e) => setAdresse(e.target.value)}
-          className="h-9 w-full rounded-[8px] border border-input bg-background px-3 text-[14px] font-normal leading-5 text-foreground shadow-xs outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
-        />
-      </FormRow>
-
+      {canEdit ? (
       <div className="flex justify-end gap-3">
         {isDirty ? (
           <button
@@ -183,6 +182,7 @@ export function BorneProfile({ borne }: { borne: BorneDetail }) {
           {saved ? "Enregistré" : "Enregistrer"}
         </button>
       </div>
+      ) : null}
 
       <div className="h-px bg-border" />
     </div>

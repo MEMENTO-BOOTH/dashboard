@@ -16,32 +16,38 @@ type Horaire = {
 export function HorairesSection({
   borneId,
   initial,
+  canEdit = false,
 }: {
   borneId: string;
   initial: Horaire[];
+  canEdit?: boolean;
 }) {
   const [horaires, setHoraires] = useState<Horaire[]>(() => {
     const map = new Map(initial.map((h) => [h.jour, h]));
-    return Array.from({ length: 7 }, (_, i) =>
-      map.get(i) ?? { jour: i, ouverture: "09:00:00", fermeture: "21:00:00", ferme: false },
+    return Array.from(
+      { length: 7 },
+      (_, i) =>
+        map.get(i) ?? { jour: i, ouverture: "09:00:00", fermeture: "21:00:00", ferme: false },
     );
   });
   const [saved, setSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const isDirty = JSON.stringify(horaires) !== JSON.stringify(
-    (() => {
-      const map = new Map(initial.map((h) => [h.jour, h]));
-      return Array.from({ length: 7 }, (_, i) =>
-        map.get(i) ?? { jour: i, ouverture: "09:00:00", fermeture: "21:00:00", ferme: false },
-      );
-    })(),
-  );
+  const isDirty =
+    JSON.stringify(horaires) !==
+    JSON.stringify(
+      (() => {
+        const map = new Map(initial.map((h) => [h.jour, h]));
+        return Array.from(
+          { length: 7 },
+          (_, i) =>
+            map.get(i) ?? { jour: i, ouverture: "09:00:00", fermeture: "21:00:00", ferme: false },
+        );
+      })(),
+    );
 
   function update(jour: number, field: keyof Horaire, value: string | boolean) {
-    setHoraires((prev) =>
-      prev.map((h) => (h.jour === jour ? { ...h, [field]: value } : h)),
-    );
+    setHoraires((prev) => prev.map((h) => (h.jour === jour ? { ...h, [field]: value } : h)));
   }
 
   function onSave() {
@@ -55,8 +61,10 @@ export function HorairesSection({
   function onCancel() {
     const map = new Map(initial.map((h) => [h.jour, h]));
     setHoraires(
-      Array.from({ length: 7 }, (_, i) =>
-        map.get(i) ?? { jour: i, ouverture: "09:00:00", fermeture: "21:00:00", ferme: false },
+      Array.from(
+        { length: 7 },
+        (_, i) =>
+          map.get(i) ?? { jour: i, ouverture: "09:00:00", fermeture: "21:00:00", ferme: false },
       ),
     );
   }
@@ -66,16 +74,24 @@ export function HorairesSection({
       <h2 className="text-[24px] font-semibold leading-8 text-foreground">Horaires</h2>
 
       <div className="overflow-clip rounded-[10px] border border-border">
-        <div className="grid grid-cols-[140px_1fr_1fr_80px] items-center gap-4 border-b border-border bg-muted/50 px-6 py-3">
-          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Jour</span>
-          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Ouverture</span>
-          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Fermeture</span>
-          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Fermé</span>
+        <div className="grid grid-cols-[100px_1fr_1fr_60px] sm:grid-cols-[140px_1fr_1fr_80px] items-center gap-4 border-b border-border bg-muted/50 px-6 py-3">
+          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+            Jour
+          </span>
+          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+            Ouverture
+          </span>
+          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+            Fermeture
+          </span>
+          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+            Fermé
+          </span>
         </div>
         {horaires.map((h) => (
           <div
             key={h.jour}
-            className="grid grid-cols-[140px_1fr_1fr_80px] items-center gap-4 border-t border-border px-6 py-3 first:border-t-0"
+            className="grid grid-cols-[100px_1fr_1fr_60px] sm:grid-cols-[140px_1fr_1fr_80px] items-center gap-4 border-t border-border px-6 py-3 first:border-t-0"
           >
             <span className="text-[14px] font-medium leading-5 text-foreground">
               {JOURS[h.jour]}
@@ -83,14 +99,14 @@ export function HorairesSection({
             <input
               type="time"
               value={h.ouverture.slice(0, 5)}
-              disabled={h.ferme}
+              disabled={h.ferme || !canEdit}
               onChange={(e) => update(h.jour, "ouverture", `${e.target.value}:00`)}
               className="h-9 rounded-[8px] border border-input bg-background px-3 text-[14px] font-normal leading-5 text-foreground shadow-xs outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             />
             <input
               type="time"
               value={h.fermeture.slice(0, 5)}
-              disabled={h.ferme}
+              disabled={h.ferme || !canEdit}
               onChange={(e) => update(h.jour, "fermeture", `${e.target.value}:00`)}
               className="h-9 rounded-[8px] border border-input bg-background px-3 text-[14px] font-normal leading-5 text-foreground shadow-xs outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             />
@@ -99,13 +115,15 @@ export function HorairesSection({
                 type="checkbox"
                 checked={h.ferme}
                 onChange={(e) => update(h.jour, "ferme", e.target.checked)}
-                className="size-4 rounded border border-input"
+                disabled={!canEdit}
+                className="size-4 rounded border border-input disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
           </div>
         ))}
       </div>
 
+      {canEdit ? (
       <div className="flex justify-end gap-3">
         {isDirty ? (
           <button
@@ -127,10 +145,15 @@ export function HorairesSection({
               : "cursor-not-allowed bg-muted text-muted-foreground"
           }`}
         >
-          {isPending ? <Loader2 className="size-4 animate-spin" /> : saved ? <Check className="size-4" /> : null}
+          {isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : saved ? (
+            <Check className="size-4" />
+          ) : null}
           {saved ? "Enregistré" : "Enregistrer"}
         </button>
       </div>
+      ) : null}
 
       <div className="h-px bg-border" />
     </div>

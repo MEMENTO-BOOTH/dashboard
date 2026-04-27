@@ -1,6 +1,6 @@
 export const siteConfig = {
   name: "Capsule",
-  description: "Dashboard de supervision Memento Booth",
+  description: "Dashboard de supervision Capsule",
   url: "https://capsule-dashboard.vercel.app",
   ogImage: "/og.png",
   links: {

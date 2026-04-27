@@ -1,10 +1,7 @@
-// Figma-free — Supabase "Project availability" table style:
-// Section title 24px SemiBold + description 14px muted
-// Table: border border-border rounded-[10px] overflow-clip
-// Header row: bg-muted/50, uppercase 12px Medium tracking-wide muted
-// Body rows: border-t, py-4 px-6, label 14px Regular + value 14px Regular right-aligned
-
-type Row = { label: string; value: string | null };
+type Row = {
+  label: string;
+  value: string | null;
+};
 
 function InfoTable({ title, rows }: { title: string; rows: Row[] }) {
   return (
@@ -17,10 +14,10 @@ function InfoTable({ title, rows }: { title: string; rows: Row[] }) {
       {rows.map((row) => (
         <div
           key={row.label}
-          className="flex items-center justify-between border-t border-border px-6 py-4 first:border-t-0"
+          className="flex items-center justify-between gap-4 border-t border-border px-6 py-4 first:border-t-0"
         >
           <p className="text-[14px] font-normal leading-5 text-foreground">{row.label}</p>
-          <p className="text-[14px] font-normal leading-5 text-muted-foreground">
+          <p className="text-right text-[14px] font-normal leading-5 text-muted-foreground">
             {row.value ?? "—"}
           </p>
         </div>
@@ -43,13 +40,18 @@ export type EquipmentData = {
 
 export function EquipmentSection({ data }: { data: EquipmentData }) {
   const softwareRows: Row[] = [
-    { label: "DSLRBooth", value: data.versionDslrbooth },
-    { label: "Cash Interface", value: data.versionCashInterface },
+    { label: "DSLRBooth", value: data.versionDslrbooth ? `v${data.versionDslrbooth}` : null },
+    {
+      label: "Cash Interface",
+      value: data.versionCashInterface ? `v${data.versionCashInterface}` : null,
+    },
   ];
 
   const hardwareRows: Row[] = [
-    { label: "Appareil photo", value: data.serialAppareilPhoto },
+    { label: "Appareil photo", value: data.serialAppareilPhoto ?? "—" },
+    { label: "Numéro de série appareil", value: data.serialAppareilPhoto },
     { label: "Imprimante", value: "DNP DS620" },
+    { label: "Numéro de série imprimante", value: data.serialImprimante },
     { label: "Statut imprimante", value: data.imprimanteStatut },
     { label: "Mode de coupe", value: data.modeCoupe },
     { label: "Réseau Wi-Fi", value: data.ssidWifi },
@@ -61,9 +63,7 @@ export function EquipmentSection({ data }: { data: EquipmentData }) {
 
   return (
     <div className="mx-auto flex w-full max-w-[900px] flex-col gap-8 pt-12">
-      <h2 className="text-[24px] font-semibold leading-8 text-foreground">
-        Logiciels & Matériels
-      </h2>
+      <h2 className="text-[24px] font-semibold leading-8 text-foreground">Logiciels & Matériels</h2>
 
       <InfoTable title="Logiciels" rows={softwareRows} />
       <InfoTable title="Matériels" rows={hardwareRows} />
