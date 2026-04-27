@@ -1,5 +1,4 @@
 import "server-only";
-import { Store } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllTransactions } from "@/lib/supabase/fetch-all";
 import {
@@ -14,7 +13,8 @@ import type { PerformanceRow } from "../data";
 const ROWS_LIMIT = 2;
 
 export type PerformanceData = {
-  rows: PerformanceRow[];
+  worst: PerformanceRow[];
+  best: PerformanceRow[];
   refRange: string;
   prevRange: string;
 };
@@ -62,20 +62,21 @@ export async function getPerformanceRows(now: Date = new Date()): Promise<Perfor
     return { id: b.id, name: b.nom_lieu, logoUrl: b.logo_url, ref, delta };
   });
 
-  scored.sort((a, b) => a.delta - b.delta);
+  const ascending = [...scored].sort((a, b) => a.delta - b.delta);
+  const descending = [...scored].sort((a, b) => b.delta - a.delta);
 
-  const rows: PerformanceRow[] = scored.slice(0, ROWS_LIMIT).map((r) => ({
+  const toRow = (r: (typeof scored)[number]): PerformanceRow => ({
     id: r.id,
     name: r.name,
     logoUrl: r.logoUrl,
     value: formatEUR(r.ref),
     percent: formatPct(r.delta),
     deltaPct: r.delta,
-    brand: Store,
-  }));
+  });
 
   return {
-    rows,
+    worst: ascending.slice(0, ROWS_LIMIT).map(toRow),
+    best: descending.slice(0, ROWS_LIMIT).map(toRow),
     refRange: formatPeriodRange(refStart, refEnd),
     prevRange: formatPeriodRange(prevStart, refStart),
   };

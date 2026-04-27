@@ -9,6 +9,7 @@ export const revalidate = 60;
 
 function formatFullDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
+    timeZone: "Europe/Paris",
     day: "2-digit",
     month: "long",
     year: "numeric",

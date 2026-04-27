@@ -66,7 +66,8 @@ export default async function DashboardHome() {
         <div className="flex flex-col justify-between gap-6">
           {showCa && performance ? (
             <Performance
-              rows={performance.rows}
+              worst={performance.worst}
+              best={performance.best}
               refRange={performance.refRange}
               prevRange={performance.prevRange}
             />

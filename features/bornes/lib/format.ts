@@ -1,4 +1,14 @@
-import { AlertTriangle, CameraOff, FileMinus, type LucideIcon, Scissors } from "lucide-react";
+import {
+  Bug,
+  CameraOff,
+  CloudOff,
+  DoorOpen,
+  FileX,
+  type LucideIcon,
+  Printer,
+  Scissors,
+  TriangleAlert,
+} from "lucide-react";
 import type { Alerte } from "../schemas";
 
 export function formatRelativeActivity(iso: string | null, now: Date = new Date()): string {
@@ -35,10 +45,16 @@ export function papierColor(percent: number): PapierColor {
 
 export type AlertMeta = { label: string; icon: LucideIcon };
 
+const ALERT_META: Record<string, AlertMeta> = {
+  camera_deconnectee: { label: "Caméra", icon: CameraOff },
+  capot_ouvert: { label: "Capot ouvert", icon: DoorOpen },
+  coupe_incoherente: { label: "Coupe", icon: Scissors },
+  crash_dslrbooth: { label: "Crash booth", icon: Bug },
+  drive_deconnecte: { label: "Drive", icon: CloudOff },
+  impression_non_delivree: { label: "Impression", icon: FileX },
+  imprimante_deconnectee: { label: "Imprimante", icon: Printer },
+};
+
 export function alertMeta(alerte: Alerte): AlertMeta {
-  const t = alerte.type.toLowerCase();
-  if (t.includes("coupe")) return { label: "Coupe", icon: Scissors };
-  if (t.includes("camera") || t.includes("appareil")) return { label: "Caméra", icon: CameraOff };
-  if (t.includes("papier")) return { label: "Papier bas", icon: FileMinus };
-  return { label: alerte.type, icon: AlertTriangle };
+  return ALERT_META[alerte.type] ?? { label: alerte.type, icon: TriangleAlert };
 }

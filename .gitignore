@@ -43,3 +43,6 @@ next-env.d.ts
 # Business data (not source code)
 CA/
 .kombai/
+
+# Claude Code lock files
+.claude/*.lock

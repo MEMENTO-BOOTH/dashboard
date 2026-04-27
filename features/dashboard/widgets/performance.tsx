@@ -1,24 +1,37 @@
-import { ArrowDown, ArrowUp, CalendarRange, ChartColumnBig } from "lucide-react";
+"use client";
+
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  CalendarRange,
+  ChartColumnBig,
+  Store,
+} from "lucide-react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { WidgetHeader } from "../_parts/widget-header";
 import { PERFORMANCE_ROWS, type PerformanceRow } from "../data";
 
 // Les valeurs (montant + %) sont pré-formatées côté server (formatEUR / formatPct).
 
+type Mode = "worst" | "best";
+
 function PerfCard({ row }: { row: PerformanceRow }) {
-  const Brand = row.brand;
   const positive = row.deltaPct >= 0;
   const Arrow = positive ? ArrowUp : ArrowDown;
   const percentClass = positive ? "text-success" : "text-destructive";
 
   return (
     <div className="flex w-full flex-col gap-4 overflow-clip rounded-[14px] border border-border py-3.5">
-      <div className="flex flex-wrap items-center justify-between gap-y-2.5 px-5">
-        <div className="flex min-w-[140px] flex-1 flex-col gap-1">
-          <p className="text-[16px] font-normal leading-6 text-muted-foreground">{row.name}</p>
+      <div className="flex items-center justify-between gap-3 px-5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <p className="truncate text-[16px] font-normal leading-6 text-muted-foreground">
+            {row.name}
+          </p>
           <p className="text-[20px] font-normal leading-7 text-card-foreground">{row.value}</p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex shrink-0 items-center gap-2.5">
           <span className="flex size-[26px] items-center justify-center rounded-full bg-primary/10 p-2">
             <Arrow className="size-4 text-card-foreground" />
           </span>
@@ -37,7 +50,7 @@ function PerfCard({ row }: { row: PerformanceRow }) {
             // biome-ignore lint/performance/noImgElement: avatar
             <img src={row.logoUrl} alt="" className="absolute inset-0 size-full object-cover" />
           ) : (
-            <Brand className="size-4" />
+            <Store className="size-4" />
           )}
         </button>
       </div>
@@ -46,17 +59,35 @@ function PerfCard({ row }: { row: PerformanceRow }) {
 }
 
 export function Performance({
-  rows = PERFORMANCE_ROWS,
+  worst,
+  best,
   refRange,
   prevRange,
 }: {
-  rows?: PerformanceRow[];
+  worst?: PerformanceRow[];
+  best?: PerformanceRow[];
   refRange?: string;
   prevRange?: string;
 }) {
+  const [mode, setMode] = useState<Mode>("worst");
+  const fallbackWorst = worst ?? PERFORMANCE_ROWS;
+  const fallbackBest = best ?? PERFORMANCE_ROWS;
+  const rows = mode === "worst" ? fallbackWorst : fallbackBest;
+  const subtitle =
+    mode === "worst" ? "Les 2 bornes les moins performantes" : "Les 2 bornes les plus performantes";
+
   return (
     <Card className="gap-4 py-6">
-      <WidgetHeader title="Performance" leadingIcon={<ChartColumnBig />} />
+      <WidgetHeader
+        title="Performance"
+        subtitle={subtitle}
+        leadingIcon={<ChartColumnBig />}
+        trailingIcon={<ArrowUpDown />}
+        trailingLabel={
+          mode === "worst" ? "Voir les plus performantes" : "Voir les moins performantes"
+        }
+        onTrailingClick={() => setMode((m) => (m === "worst" ? "best" : "worst"))}
+      />
       <div className="flex flex-col gap-4 px-6">
         {rows.map((row) => (
           <PerfCard key={row.id} row={row} />

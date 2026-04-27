@@ -125,8 +125,31 @@ const MONTH_FR_SHORT = [
   "Déc",
 ];
 
+// Buckets time en Europe/Paris quel que soit le fuseau du serveur (Vercel = UTC,
+// local = Paris) — sans ça, une tx à 31 déc 23h51 UTC bucke "Déc" en prod
+// mais "Jan" en local, et on lit deux totaux différents pour la même donnée.
+const PARIS_YMD_FMT = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Paris",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function parisYMD(d: Date): { year: number; month: number; day: number } {
+  let year = 0;
+  let month = 0;
+  let day = 0;
+  for (const p of PARIS_YMD_FMT.formatToParts(d)) {
+    if (p.type === "year") year = Number(p.value);
+    else if (p.type === "month") month = Number(p.value);
+    else if (p.type === "day") day = Number(p.value);
+  }
+  return { year, month, day };
+}
+
 function monthKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const { year, month } = parisYMD(d);
+  return `${year}-${String(month).padStart(2, "0")}`;
 }
 
 function trendValue(current: number, previous: number): number | null {
@@ -134,16 +157,48 @@ function trendValue(current: number, previous: number): number | null {
   return ((current - previous) / previous) * 100;
 }
 
-// Mappe une date d'évènement vers un bucket horaire 0..11.
+// Formatter qui sort heure et minute en heure de Paris quel que soit le fuseau
+// du serveur (Vercel = UTC, Mac local = Paris). Évite que le pic horaire soit
+// décalé de 2h en prod.
+const PARIS_HOUR_FORMATTER = new Intl.DateTimeFormat("fr-FR", {
+  timeZone: "Europe/Paris",
+  hour: "2-digit",
+  minute: "2-digit",
+  weekday: "short",
+  hourCycle: "h23",
+});
+
+function parisParts(d: Date): { hour: number; minute: number; weekday: string } {
+  const parts = PARIS_HOUR_FORMATTER.formatToParts(d);
+  let hour = 0;
+  let minute = 0;
+  let weekday = "";
+  for (const p of parts) {
+    if (p.type === "hour") hour = Number(p.value);
+    else if (p.type === "minute") minute = Number(p.value);
+    else if (p.type === "weekday") weekday = p.value.toLowerCase();
+  }
+  return { hour, minute, weekday };
+}
+
+// Mappe une date d'évènement vers un bucket horaire 0..11 (heure de Paris).
 // 12 buckets de 1h30 couvrant 9h00 → 3h00 du lendemain (18 heures d'ouverture).
 // Les heures hors plage (3h-9h) sont ignorées.
 function hourBucket(d: Date): number | null {
-  const mins = d.getHours() * 60 + d.getMinutes();
+  const { hour, minute } = parisParts(d);
+  const mins = hour * 60 + minute;
   let offset: number;
   if (mins >= 9 * 60) offset = mins - 9 * 60;
   else if (mins < 3 * 60) offset = mins + 15 * 60;
   else return null;
   return Math.min(11, Math.floor(offset / 90));
+}
+
+// Vendredi / Samedi / Dimanche = weekend pour des bornes nightlife (Paris).
+const WEEKEND_DAYS = new Set(["ven.", "sam.", "dim."]);
+
+function isWeekendParis(d: Date): boolean {
+  return WEEKEND_DAYS.has(parisParts(d).weekday);
 }
 
 // Retire les mois de tête sans aucune donnée — sinon on affiche "0 €" pour des
@@ -202,8 +257,7 @@ function computeSalesBreakdown(tx: TxLite[], now: Date): SalesBreakdown {
     const d = new Date(t.paiement_at);
     if (d.getTime() < thirtyDaysAgo) continue;
     out.totalSales30d += t.montant;
-    const dow = d.getDay();
-    if (dow === 0 || dow === 5 || dow === 6) out.weekendCa += t.montant;
+    if (isWeekendParis(d)) out.weekendCa += t.montant;
     else out.weekdayCa += t.montant;
     const b = hourBucket(d);
     if (b !== null) out.hourlyBars[b] = (out.hourlyBars[b] ?? 0) + t.montant;
@@ -283,7 +337,20 @@ export type BorneTransactionsDetail = {
 };
 
 function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const { year, month, day } = parisYMD(d);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+// Lundi (en Paris) du jour Paris de d, exprimé en clé YYYY-MM-DD.
+// Évite les bornes de semaine qui glissent quand le serveur est en UTC vs Paris
+// (ex : tx du dimanche soir tard UTC = lundi matin tôt Paris).
+function weekKey(d: Date): string {
+  const { year, month, day } = parisYMD(d);
+  const probe = new Date(Date.UTC(year, month - 1, day, 12));
+  const weekday = probe.getUTCDay();
+  const offset = weekday === 0 ? -6 : 1 - weekday;
+  const monday = new Date(Date.UTC(year, month - 1, day + offset));
+  return `${monday.getUTCFullYear()}-${String(monday.getUTCMonth() + 1).padStart(2, "0")}-${String(monday.getUTCDate()).padStart(2, "0")}`;
 }
 
 function aggregateByDay(tx: TxLite[]): Map<string, number> {
@@ -307,7 +374,7 @@ function aggregateByMonth(tx: TxLite[]): Map<string, number> {
 function aggregateByWeek(tx: TxLite[]): Map<string, number> {
   const map = new Map<string, number>();
   for (const t of tx) {
-    const k = dayKey(startOfMonday(new Date(t.paiement_at)));
+    const k = weekKey(new Date(t.paiement_at));
     map.set(k, (map.get(k) ?? 0) + t.montant);
   }
   return map;
@@ -316,8 +383,8 @@ function aggregateByWeek(tx: TxLite[]): Map<string, number> {
 function aggregateByYear(tx: TxLite[]): Map<number, number> {
   const map = new Map<number, number>();
   for (const t of tx) {
-    const y = new Date(t.paiement_at).getFullYear();
-    map.set(y, (map.get(y) ?? 0) + t.montant);
+    const { year } = parisYMD(new Date(t.paiement_at));
+    map.set(year, (map.get(year) ?? 0) + t.montant);
   }
   return map;
 }
@@ -348,13 +415,20 @@ function buildLast8Months(now: Date, monthMap: Map<string, number>) {
 }
 
 function buildLast8Weeks(now: Date, weekMap: Map<string, number>) {
-  const monday = startOfMonday(now);
+  const nowKey = weekKey(now);
+  const parts = nowKey.split("-").map(Number);
+  const y = parts[0] ?? 1970;
+  const m = parts[1] ?? 1;
+  const d = parts[2] ?? 1;
   const rows: { label: string; ca: number }[] = [];
   for (let i = 8; i >= 1; i--) {
-    const ws = addDays(monday, -7 * i);
+    const ws = new Date(Date.UTC(y, m - 1, d - 7 * i));
+    const wsY = ws.getUTCFullYear();
+    const wsM = ws.getUTCMonth() + 1;
+    const wsD = ws.getUTCDate();
     rows.push({
-      label: `${String(ws.getDate()).padStart(2, "0")} ${MONTH_FR_SHORT[ws.getMonth()] ?? ""}`,
-      ca: weekMap.get(dayKey(ws)) ?? 0,
+      label: `${String(wsD).padStart(2, "0")} ${MONTH_FR_SHORT[wsM - 1] ?? ""}`,
+      ca: weekMap.get(`${wsY}-${String(wsM).padStart(2, "0")}-${String(wsD).padStart(2, "0")}`) ?? 0,
     });
   }
   return trimLeadingZeros(rows);
