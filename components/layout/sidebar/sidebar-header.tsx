@@ -18,13 +18,13 @@ export function SidebarHeader() {
             {/* biome-ignore lint/performance/noImgElement: local static asset */}
             <img
               src="/memento-logo.png"
-              alt="Capsule"
+              alt="Kapsule"
               className="pointer-events-none absolute inset-0 size-full object-contain"
             />
           </div>
         </div>
         <p className="min-w-0 flex-1 whitespace-nowrap text-[18px] font-semibold leading-[28px] text-sidebar-foreground group-data-[collapsed]/sidebar:hidden">
-          Capsule
+          Kapsule
         </p>
       </div>
     </div>

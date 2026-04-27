@@ -1,6 +1,6 @@
 export const siteConfig = {
-  name: "Capsule",
-  description: "Dashboard de supervision Capsule",
+  name: "Kapsule",
+  description: "Dashboard de supervision Kapsule",
   url: "https://capsule-dashboard.vercel.app",
   ogImage: "/og.png",
   links: {

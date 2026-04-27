@@ -4,7 +4,7 @@ import { ArrowDownLeft, ArrowUpRight, Wallet } from "lucide-react";
 import { formatEUR } from "@/lib/utils/format";
 import type { AvgCaBucket } from "../api";
 
-const COLORS = ["bg-primary", "bg-muted", "bg-muted-foreground/60"];
+const COLORS = ["bg-primary", "bg-muted"];
 
 export function BorneVisitorsBreakdown({
   caTotal,
@@ -36,21 +36,11 @@ export function BorneVisitorsBreakdown({
 
       <div className="h-px w-full bg-border" />
 
-      <div className="relative grid grid-cols-3">
+      <div className="relative grid grid-cols-2">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 w-px"
+          className="pointer-events-none absolute inset-y-0 left-1/2 w-px"
           style={{
-            left: "33.333%",
-            backgroundImage: "linear-gradient(to bottom, var(--border) 50%, transparent 50%)",
-            backgroundSize: "1px 6px",
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 w-px"
-          style={{
-            left: "66.666%",
             backgroundImage: "linear-gradient(to bottom, var(--border) 50%, transparent 50%)",
             backgroundSize: "1px 6px",
           }}

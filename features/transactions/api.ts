@@ -511,7 +511,6 @@ export async function getBorneTransactionsDetail(
   const avgCaByPeriod: AvgCaBucket[] = [
     { label: "Jour", amount: caAvgPerDay },
     { label: "Mois", amount: caAvgPerMonth },
-    { label: "Année", amount: caAvgPerDay * 365 },
   ];
 
   const recent = [...tx]
