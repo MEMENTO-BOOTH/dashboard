@@ -3,12 +3,12 @@ import Image from "next/image";
 export function DecorativeCards() {
   return (
     <>
-      <div className="pointer-events-none absolute bottom-0 left-0 hidden h-[310.344px] w-[302.309px] items-center justify-center lg:flex">
+      <div className="pointer-events-none absolute bottom-0 left-0 flex h-[310.344px] w-[302.309px] origin-bottom-left items-center justify-center scale-[0.55] sm:scale-[0.65] md:scale-[0.75] lg:scale-[0.8] xl:scale-[0.9] 2xl:scale-100">
         <div className="-rotate-[21.06deg]">
           <OrderCard />
         </div>
       </div>
-      <div className="pointer-events-none absolute top-0 right-0 hidden h-[301.214px] w-[291.994px] items-center justify-center lg:flex">
+      <div className="pointer-events-none absolute top-0 right-0 flex h-[301.214px] w-[291.994px] origin-top-right items-center justify-center scale-[0.55] sm:scale-[0.65] md:scale-[0.75] lg:scale-[0.8] xl:scale-[0.9] 2xl:scale-100">
         <div className="rotate-[17.24deg]">
           <ImpressionCard />
         </div>
