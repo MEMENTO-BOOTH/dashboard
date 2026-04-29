@@ -81,18 +81,20 @@ export function TotalSalesCard({
   weekendCa,
   weekdayCa,
   hourlyBars,
+  peakHour,
 }: {
   totalSales: number;
   weekendCa: number;
   weekdayCa: number;
   hourlyBars: number[];
+  peakHour: number | null;
 }) {
   const maxBar = Math.max(...hourlyBars, 1);
   const peakIdx = hourlyBars.reduce(
     (acc, v, i) => (v > (hourlyBars[acc] ?? -1) ? i : acc),
     0,
   );
-  const peakLabel = hourlyBars[peakIdx] && hourlyBars[peakIdx] > 0 ? BUCKET_RANGES[peakIdx] : null;
+  const peakLabel = peakHour !== null ? `${String(peakHour).padStart(2, "0")} h` : null;
 
   return (
     <div className="flex w-full max-w-[340px] flex-col items-start gap-4 overflow-clip rounded-[14px] border border-border bg-card py-6 shadow-sm">
@@ -155,7 +157,7 @@ export function TotalSalesCard({
           ) : null}
         </div>
         <div
-          className="relative flex w-full items-end gap-[10px] px-6"
+          className="relative grid w-full grid-cols-12 items-end px-6"
           style={{ height: CHART_HEIGHT }}
         >
           {hourlyBars.map((v, i) => {
@@ -165,13 +167,17 @@ export function TotalSalesCard({
               <div
                 // biome-ignore lint/suspicious/noArrayIndexKey: fixed 12-bucket chart
                 key={i}
-                className={`min-w-px flex-1 rounded-[2px] ${isPeak ? "bg-primary" : "bg-muted"}`}
-                style={{ height: h }}
+                className="flex justify-center"
                 title={`${BUCKET_RANGES[i]} : ${formatEURCompact(v)}`}
-              />
+              >
+                <div
+                  className={`w-[70%] rounded-[2px] ${isPeak ? "bg-primary" : "bg-muted"}`}
+                  style={{ height: h }}
+                />
+              </div>
             );
           })}
-          <div className="absolute inset-0 px-6">
+          <div className="pointer-events-none absolute inset-y-0 left-6 right-6">
             <LineOverlay values={hourlyBars} />
           </div>
         </div>

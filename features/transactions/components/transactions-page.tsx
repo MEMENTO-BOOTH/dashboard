@@ -67,6 +67,7 @@ export function TransactionsPage({
           weekendCa={stats.weekendCa}
           weekdayCa={stats.weekdayCa}
           hourlyBars={stats.hourlyBars}
+          peakHour={stats.peakHour}
         />
       </div>
 

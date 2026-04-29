@@ -19,9 +19,10 @@ export type TxLite = {
   montant: number;
   paiement_at: string;
   impression_declenchee?: boolean | null;
+  flag?: string | null;
 };
 
-type TxColumn = "id" | "borne_id" | "montant" | "paiement_at" | "impression_declenchee";
+type TxColumn = "id" | "borne_id" | "montant" | "paiement_at" | "impression_declenchee" | "flag";
 
 function buildPageQuery(supabase: Admin, filters: TxFilters, select: string, from: number) {
   let q = supabase
@@ -44,6 +45,7 @@ function normalizeRow(row: TxLite): TxLite {
     montant: Number(row.montant ?? 0),
     paiement_at: row.paiement_at,
     impression_declenchee: row.impression_declenchee ?? null,
+    flag: row.flag ?? null,
   };
 }
 

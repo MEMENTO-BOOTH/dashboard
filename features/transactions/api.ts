@@ -85,6 +85,7 @@ export type GlobalStats = {
   weekendCa: number;
   weekdayCa: number;
   hourlyBars: number[];
+  peakHour: number | null;
 };
 
 const MONTH_FR_LONG = [
@@ -243,7 +244,16 @@ type SalesBreakdown = {
   weekendCa: number;
   weekdayCa: number;
   hourlyBars: number[];
+  peakHour: number | null;
 };
+
+// Imports historiques Nayax = timestamps synthétiques (18:00 par défaut, multiples
+// de 17 min) → exclus de la répartition horaire et du pic, sinon ils créent un
+// faux pic à 18h. Seules les tx live (flag IS NULL, du webhook Nayax → Supabase)
+// ont des timestamps fiables.
+function isLiveTx(t: TxLite): boolean {
+  return !t.flag || t.flag !== "historical_nayax";
+}
 
 function computeSalesBreakdown(tx: TxLite[], now: Date): SalesBreakdown {
   const thirtyDaysAgo = now.getTime() - 30 * DAY_MS;
@@ -252,16 +262,36 @@ function computeSalesBreakdown(tx: TxLite[], now: Date): SalesBreakdown {
     weekendCa: 0,
     weekdayCa: 0,
     hourlyBars: new Array(12).fill(0),
+    peakHour: null,
   };
+  // Pic = somme cumulative live (depuis le démarrage du pipeline, sans fenêtre).
+  const hourSumsAllLive = new Array(24).fill(0);
   for (const t of tx) {
     const d = new Date(t.paiement_at);
+    const live = isLiveTx(t);
+    if (live) {
+      const { hour } = parisParts(d);
+      hourSumsAllLive[hour] = (hourSumsAllLive[hour] ?? 0) + t.montant;
+    }
     if (d.getTime() < thirtyDaysAgo) continue;
     out.totalSales30d += t.montant;
     if (isWeekendParis(d)) out.weekendCa += t.montant;
     else out.weekdayCa += t.montant;
-    const b = hourBucket(d);
-    if (b !== null) out.hourlyBars[b] = (out.hourlyBars[b] ?? 0) + t.montant;
+    if (live) {
+      const b = hourBucket(d);
+      if (b !== null) out.hourlyBars[b] = (out.hourlyBars[b] ?? 0) + t.montant;
+    }
   }
+  let maxCa = 0;
+  let peakHour: number | null = null;
+  for (let h = 0; h < 24; h++) {
+    const v = hourSumsAllLive[h] ?? 0;
+    if (v > maxCa) {
+      maxCa = v;
+      peakHour = h;
+    }
+  }
+  out.peakHour = peakHour;
   return out;
 }
 
@@ -274,6 +304,7 @@ export async function getGlobalTransactionStats(now: Date = new Date()): Promise
   const tx = await fetchAllTransactions(supabase, { sinceISO: since.toISOString() }, [
     "montant",
     "paiement_at",
+    "flag",
   ]);
 
   const monthlyBars = buildMonthlyBars(tx, now);
