@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { InitialsAvatar } from "@/components/ui/initials-avatar";
 import { type LayoutMode, LayoutToggle } from "@/components/ui/layout-toggle";
 import type { BorneTableRow } from "@/features/bornes";
+import { useBorneFilters } from "@/features/bornes/hooks/use-borne-filters";
 
 function BorneCard({ borne }: { borne: BorneTableRow }) {
   return (
@@ -28,16 +29,17 @@ function BorneCard({ borne }: { borne: BorneTableRow }) {
 }
 
 export function BornesGrid({ bornes }: { bornes: BorneTableRow[] }) {
-  const [search, setSearch] = useState("");
+  const { q, setQ, type } = useBorneFilters();
   const [layout, setLayout] = useState<LayoutMode>("grid");
 
   const filtered = useMemo(() => {
-    const needle = search.trim().toLowerCase();
-    if (needle.length === 0) return bornes;
-    return bornes.filter(
-      (b) => b.name.toLowerCase().includes(needle) || b.subtitle.toLowerCase().includes(needle),
-    );
-  }, [bornes, search]);
+    const needle = q.trim().toLowerCase();
+    return bornes.filter((b) => {
+      if (type !== "all" && b.statut !== type) return false;
+      if (needle.length === 0) return true;
+      return b.name.toLowerCase().includes(needle) || b.subtitle.toLowerCase().includes(needle);
+    });
+  }, [bornes, q, type]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,8 +50,8 @@ export function BornesGrid({ bornes }: { bornes: BorneTableRow[] }) {
             type="text"
             placeholder="Rechercher une borne..."
             aria-label="Rechercher"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={q}
+            onChange={(e) => setQ(e.target.value || null)}
             className="min-w-0 flex-1 bg-transparent text-[14px] font-normal leading-5 text-foreground outline-none placeholder:text-muted-foreground"
           />
         </div>

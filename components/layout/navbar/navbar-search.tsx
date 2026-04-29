@@ -2,9 +2,10 @@
 
 import { Search } from "lucide-react";
 import { useState } from "react";
+import type { Permissions } from "@/features/auth/permissions";
 import { CommandPalette } from "./command-palette";
 
-export function NavbarSearch() {
+export function NavbarSearch({ permissions }: { permissions: Permissions }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -23,7 +24,7 @@ export function NavbarSearch() {
           <span className="text-[11px]">⌘</span>K
         </kbd>
       </button>
-      <CommandPalette open={open} onOpenChange={setOpen} />
+      <CommandPalette open={open} onOpenChange={setOpen} permissions={permissions} />
     </>
   );
 }

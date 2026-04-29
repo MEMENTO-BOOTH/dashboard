@@ -35,7 +35,7 @@ export function Shell({
         <Sidebar collapsed={collapsed} user={user} permissions={permissions} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        <Navbar mode={mode} onModeChange={setMode} />
+        <Navbar mode={mode} onModeChange={setMode} permissions={permissions} />
         <main className="flex-1 overflow-auto bg-background p-6">{children}</main>
       </div>
     </div>
