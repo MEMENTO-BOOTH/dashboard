@@ -2,6 +2,7 @@ import {
   Bug,
   CameraOff,
   CloudOff,
+  CloudUpload,
   DoorOpen,
   FileX,
   type LucideIcon,
@@ -51,6 +52,7 @@ const ALERT_META: Record<string, AlertMeta> = {
   coupe_incoherente: { label: "Coupe", icon: Scissors },
   crash_dslrbooth: { label: "Crash booth", icon: Bug },
   drive_deconnecte: { label: "Drive", icon: CloudOff },
+  drive_sync_cassee: { label: "Sync Drive", icon: CloudUpload },
   impression_non_delivree: { label: "Impression", icon: FileX },
   imprimante_deconnectee: { label: "Imprimante", icon: Printer },
 };

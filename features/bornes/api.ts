@@ -1,7 +1,12 @@
 import "server-only";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Alerte, BorneDetail, BorneTableRow } from "./schemas";
+import {
+  type Alerte,
+  type BorneDetail,
+  type BorneTableRow,
+  borneEnvironnementSchema,
+} from "./schemas";
 
 const FEUILLES_MAX = 400;
 const ACTIVE_STATUTS = ["ouverte", "assignee"] as const;
@@ -91,20 +96,6 @@ export async function getBorneHoraires(id: string) {
   return data ?? [];
 }
 
-export async function getBorneUpdates(id: string) {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("updates_bornes")
-    .select(
-      "id, statut, message_erreur, mise_a_jour_at, created_at, updates(version, notes, publiee_at)",
-    )
-    .eq("borne_id", id)
-    .order("created_at", { ascending: false })
-    .limit(20);
-  if (error) throw error;
-  return data ?? [];
-}
-
 export async function getBorneHeartbeat(id: string) {
   const supabase = createAdminClient();
   const { data } = await supabase
@@ -139,6 +130,8 @@ export async function getBorneDetail(id: string): Promise<BorneDetail> {
 
   if (error || !borne) notFound();
 
+  const envParsed = borneEnvironnementSchema.safeParse(borne.environnement);
+
   return {
     id: borne.id,
     code: borne.code,
@@ -146,6 +139,7 @@ export async function getBorneDetail(id: string): Promise<BorneDetail> {
     adresse: borne.adresse,
     ville: borne.ville,
     statut: borne.statut,
+    environnement: envParsed.success ? envParsed.data : "prod",
     date_installation: borne.date_installation,
     derniere_maintenance: borne.derniere_maintenance,
     logo_url: borne.logo_url,

@@ -8,7 +8,6 @@ import {
   getBorneHeartbeat,
   getBorneHoraires,
   getBornePaperHistory,
-  getBorneUpdates,
 } from "@/features/bornes";
 import { getInterventionsByBorne } from "@/features/parc/api";
 import { BorneProfile } from "@/features/parc/components/borne-profile";
@@ -26,16 +25,14 @@ export default async function BorneDetailPage({ params }: { params: Promise<{ id
   if (!session) notFound();
 
   const { id } = await params;
-  const [borne, borneState, heartbeat, paperHistory, horaires, updates, interventions] =
-    await Promise.all([
-      getBorneDetail(id),
-      getBorneById(id),
-      getBorneHeartbeat(id),
-      getBornePaperHistory(id),
-      getBorneHoraires(id),
-      getBorneUpdates(id),
-      getInterventionsByBorne(id),
-    ]);
+  const [borne, borneState, heartbeat, paperHistory, horaires, interventions] = await Promise.all([
+    getBorneDetail(id),
+    getBorneById(id),
+    getBorneHeartbeat(id),
+    getBornePaperHistory(id),
+    getBorneHoraires(id),
+    getInterventionsByBorne(id),
+  ]);
 
   const canEdit = can(session.permissions, "bornes.edit");
   const canDelete = can(session.permissions, "bornes.delete");
@@ -51,7 +48,12 @@ export default async function BorneDetailPage({ params }: { params: Promise<{ id
         history={paperHistory}
       />
       <EquipmentSection data={heartbeat} />
-      <UpdatesSection updates={updates} versionAgent={heartbeat.versionAgent} />
+      <UpdatesSection
+        borneId={borne.id}
+        versionAgent={heartbeat.versionAgent}
+        environnement={borne.environnement}
+        canEdit={canEdit}
+      />
       <InterventionsSection interventions={interventions} />
       {canDelete ? <DangerZoneSection borneId={borne.id} borneNom={borne.nom_lieu} /> : null}
     </div>

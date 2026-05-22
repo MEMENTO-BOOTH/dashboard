@@ -5,7 +5,7 @@ export {
   getBorneHoraires,
   getBornePaperHistory,
   getBornesWithLatestState,
-  getBorneUpdates,
 } from "./api";
 export { BornesTable } from "./bornes-table";
-export type { BorneTableRow } from "./schemas";
+export type { BorneEnvironnement, BorneTableRow } from "./schemas";
+export { borneEnvironnementSchema } from "./schemas";

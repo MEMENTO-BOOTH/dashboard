@@ -113,6 +113,7 @@ export type Database = {
           logo_url: string | null;
           nayax_device_serial: string | null;
           nom_lieu: string;
+          environnement: string;
           partenaire_id: string | null;
           setup_done: boolean | null;
           statut: Database["public"]["Enums"]["borne_statut"];
@@ -125,6 +126,7 @@ export type Database = {
           created_at?: string;
           date_installation?: string | null;
           derniere_maintenance?: string | null;
+          environnement?: string;
           id?: string;
           logo_url?: string | null;
           nayax_device_serial?: string | null;
@@ -141,6 +143,7 @@ export type Database = {
           created_at?: string;
           date_installation?: string | null;
           derniere_maintenance?: string | null;
+          environnement?: string;
           id?: string;
           logo_url?: string | null;
           nayax_device_serial?: string | null;

@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export const borneStatutSchema = z.enum(["active", "maintenance", "desactivee"]);
+export const borneEnvironnementSchema = z.enum(["prod", "dev"]);
+export type BorneEnvironnement = z.infer<typeof borneEnvironnementSchema>;
 export const alerteGraviteSchema = z.enum(["info", "warning", "critique"]);
 export const alerteStatutSchema = z.enum(["ouverte", "assignee", "resolue"]);
 
@@ -53,6 +55,7 @@ export type BorneDetail = {
   adresse: string | null;
   ville: string;
   statut: z.infer<typeof borneStatutSchema>;
+  environnement: BorneEnvironnement;
   date_installation: string | null;
   derniere_maintenance: string | null;
   logo_url: string | null;

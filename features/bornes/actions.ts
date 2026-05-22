@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { can, type Permission } from "@/features/auth/permissions";
 import { getSessionUser } from "@/features/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { type BorneEnvironnement, borneEnvironnementSchema } from "./schemas";
 import { type BorneSummary, getBorneSummary } from "./summary-api";
 
 async function requirePermission(perm: Permission): Promise<void> {
@@ -55,6 +56,24 @@ export async function updateHoraires(
   if (error) throw error;
 
   revalidatePath(`/parc/bornes/${borneId}`);
+}
+
+export async function updateBorneEnvironnement(
+  id: string,
+  environnement: BorneEnvironnement,
+): Promise<void> {
+  await requirePermission("bornes.edit");
+  const parsed = borneEnvironnementSchema.parse(environnement);
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from("bornes")
+    .update({ environnement: parsed, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) throw error;
+
+  revalidatePath(`/parc/bornes/${id}`);
 }
 
 export async function deleteBorne(id: string) {
