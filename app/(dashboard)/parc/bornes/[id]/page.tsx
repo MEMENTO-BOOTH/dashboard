@@ -43,6 +43,7 @@ export default async function BorneDetailPage({ params }: { params: Promise<{ id
       <BorneProfile borne={borne} canEdit={canEdit} />
       <HorairesSection borneId={borne.id} initial={horaires} canEdit={canEdit} />
       <PaperUsageSection
+        borneId={borne.id}
         feuilles={borneState.feuillesRestantes ?? 0}
         max={borneState.feuillesMax}
         history={paperHistory}

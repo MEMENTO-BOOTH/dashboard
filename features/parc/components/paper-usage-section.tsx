@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { addDays } from "@/lib/utils/format";
+import { ActivityExportButton } from "./activity-export-button";
 
 // Numéro de semaine ISO calculé en UTC pour éviter les sauts de DST.
 function isoWeekKey(date: Date): string {
@@ -35,6 +36,7 @@ const PERIODS = [
 ];
 
 function SegmentedGauge({ percent }: { percent: number }) {
+  const gradId = useId();
   return (
     <div className="relative h-[132px] w-[150px] text-foreground">
       <svg
@@ -46,15 +48,16 @@ function SegmentedGauge({ percent }: { percent: number }) {
         className="absolute inset-0"
         aria-hidden
       >
+        <title>Niveau de papier</title>
         <path
           d="M141.206 74.5835C141.206 63.3798 138.38 52.3571 132.989 42.5357C127.598 32.7142 119.817 24.4114 110.365 18.3957C100.914 12.38 90.097 8.84577 78.9169 8.12014C67.7367 7.39451 56.5541 9.50094 46.4042 14.2445C36.2542 18.988 27.4648 26.2153 20.8496 35.2575C14.2343 44.2997 10.007 54.8645 8.55878 65.9742C7.11058 77.0839 8.48832 88.3794 12.5645 98.8153C16.6407 109.251 23.2836 118.49 31.8783 125.677"
-          stroke="url(#gauge-grad)"
+          stroke={`url(#${gradId})`}
           strokeWidth="16"
           strokeDasharray="6 6"
         />
         <defs>
           <linearGradient
-            id="gauge-grad"
+            id={gradId}
             x1="141.206"
             y1="56.9803"
             x2="-29.3968"
@@ -147,8 +150,10 @@ function buildBars(
     const previousCursor = addDays(cursor, -periodDays);
     const previousKey = getKey(previousCursor, groupBy);
 
-    if (currentMap.has(currentKey)) lastCurrent = currentMap.get(currentKey)!;
-    if (previousMap.has(previousKey)) lastPrevious = previousMap.get(previousKey)!;
+    const currentVal = currentMap.get(currentKey);
+    if (currentVal !== undefined) lastCurrent = currentVal;
+    const previousVal = previousMap.get(previousKey);
+    if (previousVal !== undefined) lastPrevious = previousVal;
 
     bars.push({
       label: formatLabel(currentKey, groupBy),
@@ -231,17 +236,19 @@ function BarChart({ bars }: { bars: BarData[] }) {
 }
 
 export function PaperUsageSection({
+  borneId,
   feuilles,
   max,
   history,
 }: {
+  borneId: string;
   feuilles: number;
   max: number;
   history: PaperHistoryEntry[];
 }) {
   const percent = Math.round((feuilles / max) * 100);
   const [periodIdx, setPeriodIdx] = useState(0);
-  const period = PERIODS[periodIdx]!;
+  const period = PERIODS[periodIdx] ?? { label: "7 jours", days: 7, groupBy: "day" as const };
 
   const bars = useMemo(
     () => buildBars(history, period.days, period.groupBy),
@@ -310,6 +317,8 @@ export function PaperUsageSection({
           </div>
         </div>
       </div>
+
+      <ActivityExportButton borneId={borneId} />
 
       <div className="h-px bg-border" />
     </div>
