@@ -46,3 +46,9 @@ CA/
 
 # Claude Code lock files
 .claude/*.lock
+
+# IDE
+.idea/
+
+# git hooks
+.husky/
