@@ -37,7 +37,14 @@ async function fetchDevRelease(): Promise<GithubRelease | null> {
   });
   if (!res.ok) throw new Error(`GitHub /releases: ${res.status}`);
   const list = githubReleaseListSchema.parse(await res.json());
-  return list[0] ?? null;
+  // GitHub ne garantit pas l'ordre chronologique de /releases (constate :
+  // v1.0.24.0 listee avant v1.0.24.1 alors que publiee avant). On trie
+  // explicitement par published_at desc pour retourner la plus recente
+  // release (prerelease ou stable, peu importe — canal dev = bleeding edge).
+  const sorted = [...list].sort((a, b) =>
+    (b.published_at ?? "").localeCompare(a.published_at ?? ""),
+  );
+  return sorted[0] ?? null;
 }
 
 function pickExeAsset(release: GithubRelease) {
