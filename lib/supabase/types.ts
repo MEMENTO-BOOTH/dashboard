@@ -518,6 +518,41 @@ export type Database = {
         };
         Relationships: [];
       };
+      printer_events: {
+        Row: {
+          borne_id: string;
+          feuilles_restantes: number | null;
+          id: string;
+          imprimante_statut: string;
+          photos_sorties: number;
+          timestamp: string;
+        };
+        Insert: {
+          borne_id: string;
+          feuilles_restantes?: number | null;
+          id?: string;
+          imprimante_statut: string;
+          photos_sorties?: number;
+          timestamp: string;
+        };
+        Update: {
+          borne_id?: string;
+          feuilles_restantes?: number | null;
+          id?: string;
+          imprimante_statut?: string;
+          photos_sorties?: number;
+          timestamp?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "printer_events_borne_id_fkey";
+            columns: ["borne_id"];
+            isOneToOne: false;
+            referencedRelation: "bornes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       printer_status_config: {
         Row: {
           couleur: string;

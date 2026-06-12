@@ -88,11 +88,11 @@ export function totalsRow(ws: ExcelJS.Worksheet, rowIdx: number, span: number) {
   return row;
 }
 
-export function emptyRow(ws: ExcelJS.Worksheet, rowIdx: number, span: number) {
+export function emptyRow(ws: ExcelJS.Worksheet, rowIdx: number, span: number, message: string) {
   const last = ws.getColumn(span).letter;
   ws.mergeCells(`A${rowIdx}:${last}${rowIdx}`);
   const cell = ws.getCell(`A${rowIdx}`);
-  cell.value = "Aucun paiement ce jour-là.";
+  cell.value = message;
   cell.font = { name: FONT, size: 11, italic: true, color: { argb: MUTED } };
   cell.alignment = { vertical: "middle", horizontal: "center" };
   ws.getRow(rowIdx).height = 28;

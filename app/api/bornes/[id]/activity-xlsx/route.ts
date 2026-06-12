@@ -2,7 +2,8 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { getSessionUser } from "@/features/auth/session";
 import { getBorneDetail } from "@/features/bornes";
-import { getBorneActivity } from "@/features/parc/api";
+import { getBorneActivity, getBorneAlertes, getBornePrinterLog } from "@/features/parc/api";
+import { buildPrinterLog, buildPrinterTimeline } from "@/features/parc/lib/printer";
 import { buildActivityWorkbook } from "@/features/parc/lib/xlsx";
 
 export const runtime = "nodejs";
@@ -28,9 +29,23 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   }
 
   const { date } = parsed.data;
-  const [borne, activity] = await Promise.all([getBorneDetail(id), getBorneActivity(id, date)]);
+  const [borne, activity, alertes, printerLog] = await Promise.all([
+    getBorneDetail(id),
+    getBorneActivity(id, date),
+    getBorneAlertes(id, date),
+    getBornePrinterLog(id, date),
+  ]);
 
-  const buffer = await buildActivityWorkbook(activity, `${borne.nom_lieu} (${borne.code})`, date);
+  const imprimante =
+    printerLog.length > 0
+      ? buildPrinterLog(printerLog)
+      : buildPrinterTimeline(activity.paiements, alertes);
+  const buffer = await buildActivityWorkbook(
+    activity,
+    imprimante,
+    `${borne.nom_lieu} (${borne.code})`,
+    date,
+  );
   const safeName = borne.nom_lieu.replace(/[^a-zA-Z0-9-]/g, "_");
   const filename = `MementoBooth_${safeName}_${date}.xlsx`;
 

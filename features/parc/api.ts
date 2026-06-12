@@ -1,43 +1,10 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { type Activity, buildActivity } from "./lib/activity";
+import { parisDayRangeIso } from "./lib/day-range";
+import type { RawAlerte, RawPrinterLog } from "./lib/printer";
 
 const FEUILLES_MAX_DEFAULT = 400;
-const PARIS_TZ = "Europe/Paris";
-
-function parisOffsetMs(date: Date): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: PARIS_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(date);
-  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
-  const asUtc = Date.UTC(
-    get("year"),
-    get("month") - 1,
-    get("day"),
-    get("hour") % 24,
-    get("minute"),
-    get("second"),
-  );
-  return asUtc - date.getTime();
-}
-
-function parisDayRangeIso(ymd: string): { startIso: string; endIso: string } {
-  const parts = ymd.split("-").map(Number);
-  const y = parts[0] ?? 1970;
-  const m = parts[1] ?? 1;
-  const d = parts[2] ?? 1;
-  const offset = parisOffsetMs(new Date(Date.UTC(y, m - 1, d, 12)));
-  const startMs = Date.UTC(y, m - 1, d, 0, 0, 0, 0) - offset;
-  const endMs = Date.UTC(y, m - 1, d, 23, 59, 59, 999) - offset;
-  return { startIso: new Date(startMs).toISOString(), endIso: new Date(endMs).toISOString() };
-}
 
 export async function getBorneActivity(borneId: string, date: string): Promise<Activity> {
   const supabase = createAdminClient();
@@ -64,6 +31,50 @@ export async function getBorneActivity(borneId: string, date: string): Promise<A
     startIso,
     endIso,
   );
+}
+
+export async function getBorneAlertes(borneId: string, date: string): Promise<RawAlerte[]> {
+  const supabase = createAdminClient();
+  const { startIso, endIso } = parisDayRangeIso(date);
+
+  const res = await supabase
+    .from("alertes")
+    .select("timestamp, type, message, gravite, statut")
+    .eq("borne_id", borneId)
+    .gte("timestamp", startIso)
+    .lte("timestamp", endIso);
+
+  if (res.error) throw res.error;
+
+  return (res.data ?? []).map((a) => ({
+    timestamp: a.timestamp,
+    type: a.type,
+    message: a.message,
+    gravite: a.gravite,
+    statut: a.statut,
+  }));
+}
+
+export async function getBornePrinterLog(borneId: string, date: string): Promise<RawPrinterLog[]> {
+  const supabase = createAdminClient();
+  const { startIso, endIso } = parisDayRangeIso(date);
+
+  const res = await supabase
+    .from("printer_events")
+    .select("timestamp, feuilles_restantes, photos_sorties, imprimante_statut")
+    .eq("borne_id", borneId)
+    .gte("timestamp", startIso)
+    .lte("timestamp", endIso)
+    .order("timestamp", { ascending: false });
+
+  if (res.error) throw res.error;
+
+  return (res.data ?? []).map((e) => ({
+    timestamp: e.timestamp,
+    feuilles_restantes: e.feuilles_restantes,
+    photos_sorties: Number(e.photos_sorties ?? 0),
+    imprimante_statut: String(e.imprimante_statut ?? ""),
+  }));
 }
 
 export type Intervention = {
