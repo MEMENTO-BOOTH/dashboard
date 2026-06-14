@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { permissionsFromArray, type Permissions } from "./permissions";
+import { type Permissions, permissionsFromArray } from "./permissions";
 
 const COOKIE_NAME = "capsule_session";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 jours
@@ -16,6 +16,8 @@ const ALL_PERMISSIONS_GRANTED: Permissions = {
   "interventions.delete": true,
   "interventions.complete": true,
   "jetons.view": true,
+  "commandes.assign": true,
+  "commandes.expedite": true,
 };
 
 export type SessionUser = {

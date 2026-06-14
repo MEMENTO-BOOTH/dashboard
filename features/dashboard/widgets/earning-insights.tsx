@@ -127,7 +127,7 @@ export function EarningInsights({ data = EARNING_DATA }: { data?: EarningData })
     <Card className="gap-4 py-6">
       <WidgetHeader title="CA de la semaine" subtitle="Semaine en cours (lundi → aujourd'hui)" />
 
-      <div className="flex flex-col items-stretch gap-6 px-6 lg:flex-row lg:items-start lg:gap-10">
+      <div className="flex flex-col items-stretch gap-6 px-6">
         <div className="flex min-w-0 flex-col gap-2">
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-[48px] font-medium leading-[56px] text-card-foreground">

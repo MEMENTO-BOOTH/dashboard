@@ -1,22 +1,21 @@
 import { Suspense } from "react";
+import { ActiviteRecente, getActiviteRecente } from "@/features/activite";
 import { can } from "@/features/auth/permissions";
 import { getSessionUser } from "@/features/auth/session";
 import { BornesTable, getBornesWithLatestState } from "@/features/bornes";
+import { CommandesATraiter, getCommandesATraiter } from "@/features/commandes";
 import {
   BugsUrgent,
   EarningInsights,
   getBugsAndPaperBornes,
   getEarningInsights,
-  getObjectifData,
-  getPerformanceRows,
-  Objectif,
-  Performance,
 } from "@/features/dashboard";
 import {
   getAllBornesSummary,
   getAssignees,
   getInterventionCandidates,
 } from "@/features/dashboard/alerts/intervention-api";
+import { getKapsules } from "@/features/kapsules";
 
 export const revalidate = 30;
 
@@ -27,54 +26,53 @@ export default async function DashboardHome() {
 
   const [
     bornes,
-    objectif,
     bugsPaper,
     earning,
-    performance,
     interventionCandidates,
     allBornesSummary,
     assignees,
+    commandes,
+    kapsules,
+    activite,
   ] = await Promise.all([
     getBornesWithLatestState(),
-    getObjectifData(),
     getBugsAndPaperBornes(),
     showCa ? getEarningInsights() : Promise.resolve(null),
-    showCa ? getPerformanceRows() : Promise.resolve(null),
     getInterventionCandidates(),
     getAllBornesSummary(),
     getAssignees(),
+    getCommandesATraiter(),
+    getKapsules(),
+    getActiviteRecente(),
   ]);
 
   return (
     <div className="mx-auto flex max-w-[1280px] flex-col gap-6">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_355px]">
-        <div className="flex flex-col justify-between gap-6">
-          {showCa && earning ? <EarningInsights data={earning} /> : null}
-          <BugsUrgent
-            bugs={bugsPaper.bugs}
-            totalBugs={bugsPaper.totalBugs}
-            allBugs={bugsPaper.allBugs}
-            paperBornes={bugsPaper.paperBornes}
-            totalPaperBornes={bugsPaper.totalPaperBornes}
-            allPaperBornes={bugsPaper.allPaperBornes}
-            interventionCandidates={interventionCandidates}
-            allBornes={allBornesSummary}
-            assignees={assignees}
-            canCreateIntervention={canCreateIntervention}
-          />
-        </div>
-        <div className="flex flex-col justify-between gap-6">
-          {showCa && performance ? (
-            <Performance
-              worst={performance.worst}
-              best={performance.best}
-              refRange={performance.refRange}
-              prevRange={performance.prevRange}
-            />
-          ) : null}
-          <Objectif data={objectif} />
-        </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
+        {showCa && earning ? (
+          <EarningInsights data={earning} />
+        ) : (
+          <div className="hidden lg:block" />
+        )}
+        <CommandesATraiter rows={commandes} total={commandes.length} bornes={kapsules} />
       </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_355px]">
+        <BugsUrgent
+          bugs={bugsPaper.bugs}
+          totalBugs={bugsPaper.totalBugs}
+          allBugs={bugsPaper.allBugs}
+          paperBornes={bugsPaper.paperBornes}
+          totalPaperBornes={bugsPaper.totalPaperBornes}
+          allPaperBornes={bugsPaper.allPaperBornes}
+          interventionCandidates={interventionCandidates}
+          allBornes={allBornesSummary}
+          assignees={assignees}
+          canCreateIntervention={canCreateIntervention}
+        />
+        <ActiviteRecente events={activite} />
+      </div>
+
       <Suspense fallback={null}>
         <BornesTable rows={bornes} showCa={showCa} />
       </Suspense>

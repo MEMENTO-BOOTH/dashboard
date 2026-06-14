@@ -1,5 +1,12 @@
 import type { LucideIcon } from "lucide-react";
-import { ChartNoAxesCombined, Coins, LayoutDashboard, MapPinned, Users } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  Coins,
+  LayoutDashboard,
+  Mailbox,
+  MapPinned,
+  Users,
+} from "lucide-react";
 import type { Permission } from "@/features/auth/permissions";
 
 export type NavItem = {
@@ -12,6 +19,7 @@ export type NavItem = {
 
 export const dashboardNav: NavItem[] = [
   { title: "Home", href: "/", icon: LayoutDashboard },
+  { title: "Postal", href: "/postal", icon: Mailbox },
   { title: "Mon parc", href: "/parc", icon: MapPinned },
   { title: "Jetons", href: "/jetons", icon: Coins, requiredPermission: "jetons.view" },
   {
