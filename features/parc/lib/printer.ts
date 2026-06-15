@@ -36,15 +36,22 @@ const STATUTS_NORMAUX = new Set([
   "Refroidissement moteur",
 ]);
 
+const MAX_PHOTOS_EVENT = 20;
+
 export function buildPrinterLog(rows: RawPrinterLog[]): PrinterEvent[] {
   return rows
-    .map((r) => ({
-      timestamp: r.timestamp,
-      papier_restant: r.feuilles_restantes,
-      photos_sorties: r.photos_sorties,
-      statut: r.imprimante_statut,
-      erreur: !STATUTS_NORMAUX.has(r.imprimante_statut),
-    }))
+    .map((r) => {
+      const papierValide = r.feuilles_restantes !== null && r.feuilles_restantes > 0;
+      const sortiesValides = r.photos_sorties >= 1 && r.photos_sorties <= MAX_PHOTOS_EVENT;
+      return {
+        timestamp: r.timestamp,
+        papier_restant: papierValide ? r.feuilles_restantes : null,
+        photos_sorties: sortiesValides ? r.photos_sorties : 0,
+        statut: r.imprimante_statut,
+        erreur: !STATUTS_NORMAUX.has(r.imprimante_statut),
+      };
+    })
+    .filter((e) => e.photos_sorties >= 1 || e.erreur)
     .sort((x, y) => y.timestamp.localeCompare(x.timestamp));
 }
 
