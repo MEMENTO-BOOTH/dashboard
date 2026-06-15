@@ -18,17 +18,20 @@ const KIND_ICON: Record<ActiviteKind, LucideIcon> = {
   return: PackageCheck,
 };
 
+const ITEMS = 3;
+
 export function ActiviteRecente({ events }: { events: ActiviteEvent[] }) {
+  const shown = events.slice(0, ITEMS);
   return (
-    <Card className="gap-4 py-6">
+    <Card className="h-full gap-4 py-6">
       <div className="flex flex-col gap-0.5 px-6">
         <span className="text-lg font-semibold text-card-foreground">Activité récente</span>
         <span className="text-sm text-muted-foreground">Derniers événements des bornes</span>
       </div>
       <Timeline className="px-6">
-        {events.map((event, i) => {
+        {shown.map((event, i) => {
           const Icon = KIND_ICON[event.kind];
-          const last = i === events.length - 1;
+          const last = i === shown.length - 1;
           return (
             <TimelineItem key={event.id} status="done" className="gap-x-4">
               <TimelineDot status="custom" className="size-9 rounded-full bg-accent">

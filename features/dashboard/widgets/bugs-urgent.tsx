@@ -130,7 +130,7 @@ export function BugsUrgent({
   const extraPaper = Math.max(0, totalPaperBornes - PREVIEW_LIMIT);
 
   return (
-    <Card className="gap-6 py-6">
+    <Card className="h-full gap-6 py-6">
       <div className="flex items-center justify-between gap-2 px-6">
         <div className="flex items-center gap-3">
           <CardTitle title="Bugs urgent" />
