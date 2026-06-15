@@ -1,6 +1,7 @@
-import { DownloadIcon, ImageOffIcon } from "lucide-react";
+import { DownloadIcon } from "lucide-react";
 import Image from "next/image";
 import type { Galerie } from "../schemas";
+import { DownloadAllButton } from "./download-all-button";
 
 const EVENT_LABELS: Record<string, string> = {
   mariage: "Mariage",
@@ -8,6 +9,8 @@ const EVENT_LABELS: Record<string, string> = {
   bapteme: "Baptême",
   soiree: "Soirée",
 };
+
+const ROTATIONS = ["-rotate-2", "rotate-1", "-rotate-1", "rotate-2"];
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -20,50 +23,68 @@ export function GalerieView({ galerie }: { galerie: Galerie }) {
   const count = galerie.photos.length;
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-12 sm:py-16">
-      <header className="flex flex-col gap-2">
-        <span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-          Kapsule
-        </span>
-        <h1 className="text-3xl font-semibold text-foreground sm:text-4xl">Vos photos</h1>
-        <p className="text-muted-foreground">
-          {label} · {formatDate(galerie.eventDate)} · {count} photo{count > 1 ? "s" : ""}
+    <main className="relative mx-auto w-full max-w-6xl px-5 pt-7 pb-24">
+      <Image
+        src="/stickers/portrait.svg"
+        alt=""
+        aria-hidden
+        width={176}
+        height={176}
+        unoptimized
+        className="pointer-events-none absolute top-2 right-3 z-20 h-auto w-20 rotate-12 sm:w-28"
+      />
+      <Image
+        src="/brand/kapsule-logo-blue.svg"
+        alt="Kapsule"
+        width={300}
+        height={88}
+        className="h-20 w-auto"
+      />
+
+      <header className="mx-auto flex max-w-2xl flex-col items-center gap-4 py-10 text-center">
+        <h1
+          className="text-5xl font-black tracking-tight uppercase sm:text-7xl"
+          style={{ fontFamily: "var(--font-loos-wide), sans-serif" }}
+        >
+          Vos photos
+        </h1>
+        <p className="text-base font-medium sm:text-lg">
+          {label} · {formatDate(galerie.eventDate)} ·{" "}
+          <span className="text-[#ff5400]">
+            {count} photo{count > 1 ? "s" : ""}
+          </span>
         </p>
+        {count > 0 ? <DownloadAllButton photos={galerie.photos} /> : null}
       </header>
 
       {count === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-[14px] border border-dashed border-border py-20 text-center">
-          <ImageOffIcon className="size-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Vos photos ne sont pas encore disponibles.
-          </p>
+        <div className="mx-auto mt-10 flex max-w-md flex-col items-center gap-4 rounded-[14px] border-[3px] border-dashed border-[#00109f]/40 bg-white/60 px-6 py-16 text-center">
+          <p className="font-medium">Tes photos arrivent bientôt — reviens juste après l'événement !</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {galerie.photos.map((photo) => (
-            <figure
+        <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 md:gap-7">
+          {galerie.photos.map((photo, i) => (
+            <a
               key={photo.fileName}
-              className="group relative overflow-hidden rounded-[14px] border border-border bg-muted"
+              href={photo.downloadUrl}
+              download={photo.fileName}
+              className={`group block rounded-[8px] border-[3px] border-[#00109f] bg-white p-3 shadow-[6px_6px_0_0_#00109f] transition-all duration-200 hover:-translate-y-1 hover:rotate-0 hover:shadow-[9px_9px_0_0_#ff5400] ${ROTATIONS[i % ROTATIONS.length]}`}
             >
-              <div className="relative aspect-[3/4]">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[3px] bg-[#fdf2da]">
                 <Image
                   src={photo.downloadUrl}
-                  alt={photo.fileName}
+                  alt={`Souvenir ${i + 1}`}
                   fill
                   unoptimized
-                  sizes="(min-width:1024px) 25vw, (min-width:640px) 33vw, 50vw"
+                  sizes="(min-width:768px) 25vw, (min-width:640px) 33vw, 50vw"
                   className="object-cover"
                 />
               </div>
-              <a
-                href={photo.downloadUrl}
-                download={photo.fileName}
-                className="absolute inset-x-2 bottom-2 flex items-center justify-center gap-2 rounded-[10px] bg-background/90 py-2 text-sm font-medium text-foreground opacity-0 backdrop-blur transition-opacity group-hover:opacity-100"
-              >
+              <div className="flex items-center justify-center gap-2 pt-3 pb-1 text-sm font-bold tracking-wide uppercase group-hover:text-[#ff5400]">
                 <DownloadIcon className="size-4" />
                 Télécharger
-              </a>
-            </figure>
+              </div>
+            </a>
           ))}
         </div>
       )}
