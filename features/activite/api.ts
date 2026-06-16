@@ -4,9 +4,16 @@ import { createPostalClient } from "@/lib/supabase/postal";
 import { type ActiviteEvent, type ActiviteKind, activiteEventSchema } from "./schemas";
 
 const EVENT_MAP: Record<string, { kind: ActiviteKind; label: string }> = {
+  order_created: { kind: "create", label: "Nouvelle commande" },
+  order_paid: { kind: "pay", label: "Paiement reçu" },
+  template_updated: { kind: "edit", label: "Template modifié" },
+  order_submitted: { kind: "submit", label: "Design validé par le client" },
   order_assigned: { kind: "assign", label: "Borne assignée" },
   order_imported: { kind: "import", label: "Template installé" },
+  order_expedited: { kind: "expedite", label: "Borne expédiée" },
   order_returned: { kind: "return", label: "Photos reçues" },
+  order_refunded: { kind: "refund", label: "Commande remboursée" },
+  order_archived: { kind: "archive", label: "Commande archivée" },
 };
 
 function bornesLabel(seq: number): string {
@@ -28,7 +35,7 @@ export async function getActiviteRecente(limit = 8): Promise<ActiviteEvent[]> {
     supabase
       .from("order_events")
       .select("id, order_id, event_type, created_at")
-      .in("event_type", ["order_assigned", "order_imported", "order_returned"])
+      .in("event_type", Object.keys(EVENT_MAP))
       .order("created_at", { ascending: false })
       .limit(limit),
     supabase.from("kapsules").select("id, seq, enrolled_at"),

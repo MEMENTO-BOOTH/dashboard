@@ -1,6 +1,18 @@
 import { z } from "zod";
 
-export const activiteKindSchema = z.enum(["enroll", "assign", "import", "return"]);
+export const activiteKindSchema = z.enum([
+  "enroll",
+  "create",
+  "pay",
+  "submit",
+  "edit",
+  "assign",
+  "import",
+  "expedite",
+  "return",
+  "refund",
+  "archive",
+]);
 export type ActiviteKind = z.infer<typeof activiteKindSchema>;
 
 export const activiteEventSchema = z.object({

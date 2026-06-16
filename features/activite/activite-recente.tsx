@@ -1,5 +1,17 @@
 import type { LucideIcon } from "lucide-react";
-import { Cpu, Download, PackageCheck, PlugZap } from "lucide-react";
+import {
+  Archive,
+  Cpu,
+  CreditCard,
+  Download,
+  FilePen,
+  PackageCheck,
+  PlugZap,
+  RotateCcw,
+  Send,
+  ShoppingBag,
+  Truck,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   Timeline,
@@ -13,9 +25,16 @@ import type { ActiviteEvent, ActiviteKind } from "./schemas";
 
 const KIND_ICON: Record<ActiviteKind, LucideIcon> = {
   enroll: PlugZap,
+  create: ShoppingBag,
+  pay: CreditCard,
+  submit: Send,
+  edit: FilePen,
   assign: Cpu,
   import: Download,
+  expedite: Truck,
   return: PackageCheck,
+  refund: RotateCcw,
+  archive: Archive,
 };
 
 const ITEMS = 3;
