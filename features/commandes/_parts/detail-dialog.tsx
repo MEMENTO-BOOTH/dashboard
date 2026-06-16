@@ -13,6 +13,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils/cn";
 import type { CommandeListRow, PostalOrderStatus } from "../schemas";
+import { TemplatePreview } from "./template-preview";
 
 const STATUT_LABEL: Record<PostalOrderStatus, string> = {
   pending_payment: "En attente de paiement",
@@ -77,7 +78,7 @@ export function DetailDialog({ row, children }: { row: CommandeListRow; children
           {children}
         </button>
       </DialogTrigger>
-      <DialogContent className="w-[600px] rounded-[14px] p-0">
+      <DialogContent className="max-h-[88vh] w-[820px] max-w-[94vw] overflow-y-auto rounded-[14px] p-0">
         <div className="flex flex-col gap-5 p-6">
           <DialogTitle className="text-2xl font-semibold text-card-foreground">
             Détail commande
@@ -109,6 +110,8 @@ export function DetailDialog({ row, children }: { row: CommandeListRow; children
               <span className="text-base font-medium text-card-foreground">{row.eventType}</span>
             </div>
           </div>
+
+          <TemplatePreview template={row.template} />
 
           <div className="space-y-3 rounded-[14px] border border-border p-6">
             <Recap label="Borne assignée" value={row.kapsuleLabel ?? "Non assignée"} />
