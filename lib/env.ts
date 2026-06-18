@@ -11,7 +11,7 @@ const serverSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
   GOOGLE_REDIRECT_URI: z.string().url().optional(),
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
-  KAPSULE_API_URL: z.string().url().default("https://api.kapsule-photo.fr"),
+  KAPSULE_API_URL: z.string().url().default("https://api.kapsule-photo.com"),
 });
 
 const clientSchema = z.object({
