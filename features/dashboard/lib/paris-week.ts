@@ -19,7 +19,7 @@ export function dayDiff(a: Date, b: Date): number {
 }
 
 export function startOfMonday(now: Date): Date {
-  const [y, m, d] = ymd.format(now).split("-").map(Number);
+  const [y, m, d] = ymd.format(now).split("-").map(Number) as [number, number, number];
   const wall = new Date(Date.UTC(y, m - 1, d));
   const dow = wall.getUTCDay();
   wall.setUTCDate(wall.getUTCDate() + (dow === 0 ? -6 : 1 - dow));
