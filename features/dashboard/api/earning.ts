@@ -1,16 +1,9 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllTransactions } from "@/lib/supabase/fetch-all";
-import { addDays, startOfMonday } from "@/lib/utils/format";
+import { addDays } from "@/lib/utils/format";
+import { dayDiff, startOfMonday } from "../lib/paris-week";
 import type { EarningBar, EarningData } from "../data";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function dayDiff(a: Date, b: Date): number {
-  const aMid = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
-  const bMid = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
-  return Math.round((aMid - bMid) / DAY_MS);
-}
 
 const DAY_LABELS = [
   { short: "Lu", full: "Lundi" },
