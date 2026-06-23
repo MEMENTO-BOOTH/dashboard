@@ -2,8 +2,8 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllTransactions } from "@/lib/supabase/fetch-all";
 import { addDays } from "@/lib/utils/format";
-import { dayDiff, startOfMonday } from "../lib/paris-week";
 import type { EarningBar, EarningData } from "../data";
+import { dayDiff, startOfMonday } from "../lib/paris-week";
 
 const DAY_LABELS = [
   { short: "Lu", full: "Lundi" },
