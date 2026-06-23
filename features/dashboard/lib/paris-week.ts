@@ -10,8 +10,8 @@ const ymd = new Intl.DateTimeFormat("en-CA", {
 const offsetFmt = new Intl.DateTimeFormat("en-US", { timeZone: TZ, timeZoneName: "shortOffset" });
 
 function offsetMs(d: Date): number {
-  const m = offsetFmt.format(d).match(/GMT([+-]\d+)/);
-  return m ? parseInt(m[1], 10) * 3_600_000 : 0;
+  const hours = offsetFmt.format(d).match(/GMT([+-]\d+)/)?.[1];
+  return hours ? parseInt(hours, 10) * 3_600_000 : 0;
 }
 
 export function dayDiff(a: Date, b: Date): number {
