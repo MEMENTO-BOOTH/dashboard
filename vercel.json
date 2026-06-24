@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/check-bornes-eteintes",
+      "schedule": "0 7 * * *"
+    }
+  ]
+}

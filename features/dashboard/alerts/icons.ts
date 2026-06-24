@@ -4,12 +4,12 @@ import {
   CameraOff,
   CloudOff,
   FileMinus,
-  FileText,
   FileX,
   HardDrive,
   LogOut,
   type LucideIcon,
   Monitor,
+  PowerOff,
   Printer,
   RefreshCcw,
   Scissors,
@@ -39,6 +39,7 @@ const TYPE_LUCIDE: Record<string, LucideIcon> = {
   disque_bas: HardDrive,
   camera_deconnectee: CameraOff,
   borne_hors_ligne: WifiOff,
+  borne_eteinte_3_jours: PowerOff,
   drive_deconnecte: CloudOff,
   surchauffe: Thermometer,
   papier_bas: FileMinus,
@@ -64,6 +65,7 @@ export const TYPE_LABELS: Record<string, string> = {
   coupe_incoherente: "Coupe de pouce",
   crash_relance: "Crash relancé",
   borne_hors_ligne: "Borne hors ligne",
+  borne_eteinte_3_jours: "Borne éteinte > 3 jours",
   impression_non_delivree: "Impression non délivrée",
   drive_deconnecte: "Drive déconnecté",
 };
@@ -90,6 +92,7 @@ const TYPE_GRAVITE: Record<string, AlertGravite> = {
   disque_bas: "warning",
   crash_relance: "warning",
   impression_non_delivree: "warning",
+  borne_eteinte_3_jours: "warning",
 };
 
 export function alertIconFor(type: string): LucideIcon {
