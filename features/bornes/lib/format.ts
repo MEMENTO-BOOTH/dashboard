@@ -6,6 +6,7 @@ import {
   DoorOpen,
   FileX,
   type LucideIcon,
+  PowerOff,
   Printer,
   Scissors,
   TriangleAlert,
@@ -47,6 +48,7 @@ export function papierColor(percent: number): PapierColor {
 export type AlertMeta = { label: string; icon: LucideIcon };
 
 const ALERT_META: Record<string, AlertMeta> = {
+  borne_eteinte_3_jours: { label: "Borne éteinte", icon: PowerOff },
   camera_deconnectee: { label: "Caméra", icon: CameraOff },
   capot_ouvert: { label: "Capot ouvert", icon: DoorOpen },
   coupe_incoherente: { label: "Coupe", icon: Scissors },

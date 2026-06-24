@@ -10,6 +10,20 @@ export const ALERT_TYPE = "borne_eteinte_3_jours" as const;
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
 
+const parisDateFmt = new Intl.DateTimeFormat("fr-FR", {
+  timeZone: "Europe/Paris",
+  day: "2-digit",
+  month: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+function formatLastSeen(iso: string): string {
+  const parts = parisDateFmt.formatToParts(new Date(iso));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("day")}/${get("month")} à ${get("hour")}h${get("minute")}`;
+}
+
 export type BorneCandidate = {
   borne_id: string;
   nom_lieu: string;
@@ -96,7 +110,7 @@ export async function runCron(dry: boolean, now: Date = new Date()): Promise<Cro
     borne_id: m.borne_id,
     type: ALERT_TYPE,
     source: "dashboard",
-    message: `Borne ${m.nom_lieu} eteinte depuis 3 jours (dernier signe de vie : ${m.last_seen})`,
+    message: `🔌 Borne ${m.nom_lieu} éteinte depuis 3 jours (dernier signe de vie : ${formatLastSeen(m.last_seen)}).`,
     gravite: "critique" as const,
     statut: "ouverte" as const,
     timestamp: nowIso,
