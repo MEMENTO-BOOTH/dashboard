@@ -43,7 +43,10 @@ export async function detectBornesEteintes(now: Date = new Date()): Promise<Born
   const lastSeenCutoff = new Date(now.getTime() - THREE_DAYS_MS).toISOString();
   const firstSeenCutoff = new Date(now.getTime() - FORTY_EIGHT_HOURS_MS).toISOString();
 
-  const { data: bornes, error } = await supabase.from("bornes").select("id, nom_lieu");
+  const { data: bornes, error } = await supabase
+    .from("bornes")
+    .select("id, nom_lieu")
+    .eq("statut", "active");
   if (error) throw new Error(error.message);
 
   const candidates = await Promise.all(
