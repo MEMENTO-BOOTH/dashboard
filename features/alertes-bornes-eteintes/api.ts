@@ -109,15 +109,20 @@ export async function runCron(dry: boolean, now: Date = new Date()): Promise<Cro
   }
 
   const nowIso = now.toISOString();
-  const rows = toInsert.map((m) => ({
-    borne_id: m.borne_id,
-    type: ALERT_TYPE,
-    source: "dashboard",
-    message: `🔌 Borne ${m.nom_lieu} éteinte depuis 3 jours (dernier signe de vie : ${formatLastSeen(m.last_seen)}).`,
-    gravite: "critique" as const,
-    statut: "ouverte" as const,
-    timestamp: nowIso,
-  }));
+  const rows = toInsert.map((m) => {
+    const days = Math.floor(
+      (now.getTime() - new Date(m.last_seen).getTime()) / (24 * 60 * 60 * 1000),
+    );
+    return {
+      borne_id: m.borne_id,
+      type: ALERT_TYPE,
+      source: "dashboard",
+      message: `🔌 Borne ${m.nom_lieu} éteinte depuis ${days} jours (dernier signe de vie : ${formatLastSeen(m.last_seen)}).`,
+      gravite: "critique" as const,
+      statut: "ouverte" as const,
+      timestamp: nowIso,
+    };
+  });
 
   const { error: insertErr } = await supabase.from("alertes").insert(rows);
   if (insertErr) throw new Error(insertErr.message);
