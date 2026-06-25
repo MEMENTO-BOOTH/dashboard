@@ -59,6 +59,8 @@ function Row({ row, bornes }: { row: CommandeRow; bornes: KapsuleRow[] }) {
   );
 }
 
+const MAX_VISIBLE = 5;
+
 export function CommandesATraiter({
   rows,
   total,
@@ -70,7 +72,8 @@ export function CommandesATraiter({
   bornes: KapsuleRow[];
   seeAllHref?: string;
 }) {
-  const extra = Math.max(0, total - rows.length);
+  const visible = rows.slice(0, MAX_VISIBLE);
+  const extra = Math.max(0, total - visible.length);
 
   return (
     <Card className="gap-6 py-6">
@@ -80,23 +83,25 @@ export function CommandesATraiter({
       </div>
 
       <div className="flex flex-col gap-5 px-6">
-        {rows.length === 0 ? (
+        {visible.length === 0 ? (
           <p className="text-sm text-muted-foreground">Aucune commande à traiter pour le moment.</p>
         ) : null}
-        {rows.map((row) => (
+        {visible.map((row) => (
           <Row key={row.id} row={row} bornes={bornes} />
         ))}
       </div>
 
-      <div className="mt-auto px-6">
-        <Link
-          href={seeAllHref}
-          style={TICKET_NOTCH}
-          className="flex h-9 w-full items-center justify-center rounded-[8px] bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          Voir toutes les commandes{extra > 0 ? ` (+${extra})` : ""}
-        </Link>
-      </div>
+      {extra > 0 ? (
+        <div className="mt-auto px-6">
+          <Link
+            href={seeAllHref}
+            style={TICKET_NOTCH}
+            className="flex h-9 w-full items-center justify-center rounded-[8px] bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Voir toutes les commandes (+{extra})
+          </Link>
+        </div>
+      ) : null}
     </Card>
   );
 }
