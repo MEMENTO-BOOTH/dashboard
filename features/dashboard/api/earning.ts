@@ -21,21 +21,19 @@ export async function getEarningInsights(now: Date = new Date()): Promise<Earnin
   const thisWeekStart = startOfMonday(now);
   const lastWeekStart = addDays(thisWeekStart, -7);
 
-  const tx = await fetchAllTransactions(supabase, { sinceISO: lastWeekStart.toISOString() }, [
-    "montant",
-    "paiement_at",
-  ]);
+  const tx = await fetchAllTransactions(
+    supabase,
+    { sinceISO: lastWeekStart.toISOString(), montantPositif: true },
+    ["montant", "paiement_at"],
+  );
 
-  // Pour comparer un même tronçon, on prend les tx de la semaine passée jusqu'au
-  // même décalage (en ms) que celui écoulé cette semaine.
   const elapsedMs = now.getTime() - thisWeekStart.getTime();
   const lastWeekSamePointMs = lastWeekStart.getTime() + elapsedMs;
 
   const thisWeekByDay = new Array<number>(7).fill(0);
   const lastWeekByDay = new Array<number>(7).fill(0);
   let totalThisWeek = 0;
-  let totalLastWeek = 0; // semaine passée complète (pour les bars jour par jour)
-  let totalLastWeekElapsed = 0; // même tronçon que cette semaine (pour le delta global)
+  let totalLastWeekElapsed = 0;
 
   for (const t of tx) {
     const paidAt = new Date(t.paiement_at);
@@ -46,7 +44,6 @@ export async function getEarningInsights(now: Date = new Date()): Promise<Earnin
       totalThisWeek += t.montant;
     } else if (dayIndex >= -7 && dayIndex < 0) {
       lastWeekByDay[dayIndex + 7] = (lastWeekByDay[dayIndex + 7] ?? 0) + t.montant;
-      totalLastWeek += t.montant;
       if (ts < lastWeekSamePointMs) totalLastWeekElapsed += t.montant;
     }
   }
@@ -73,8 +70,6 @@ export async function getEarningInsights(now: Date = new Date()): Promise<Earnin
     };
   });
 
-  // Variation = même tronçon de semaine (lundi → maintenant) vs semaine passée au
-  // même point. Évite le faux "−100 %" en début de lundi.
   const variationPct =
     totalLastWeekElapsed > 0
       ? Math.round(((totalThisWeek - totalLastWeekElapsed) / totalLastWeekElapsed) * 100)

@@ -9,7 +9,7 @@ export type BorneSummary = {
   logo_url: string | null;
   statut: string;
   lastActivityAt: string | null;
-  isOffline: boolean; // pas de heartbeat depuis > 24 h
+  isOffline: boolean;
   feuillesRestantes: number | null;
   feuillesMax: number;
   caWeek: number;
@@ -36,7 +36,8 @@ export async function getBorneSummary(id: string): Promise<BorneSummary | null> 
       .from("transactions")
       .select("montant, paiement_at")
       .eq("borne_id", id)
-      .gte("paiement_at", new Date(since7Ms).toISOString()),
+      .gte("paiement_at", new Date(since7Ms).toISOString())
+      .gt("montant", 0),
   ]);
 
   if (borneRes.error || !borneRes.data) return null;

@@ -22,7 +22,6 @@ export type PerformanceData = {
 export async function getPerformanceRows(now: Date = new Date()): Promise<PerformanceData> {
   const supabase = createAdminClient();
 
-  // Compare 2 dernières semaines ISO complètes (lundi → dimanche)
   const currentMonday = startOfMonday(now);
   const refStart = addDays(currentMonday, -7);
   const refEnd = currentMonday;
@@ -35,6 +34,7 @@ export async function getPerformanceRows(now: Date = new Date()): Promise<Perfor
       {
         sinceISO: prevStart.toISOString(),
         untilISO: refEnd.toISOString(),
+        montantPositif: true,
       },
       ["borne_id", "montant", "paiement_at"],
     ),

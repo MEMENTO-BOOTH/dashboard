@@ -29,7 +29,8 @@ export async function getBornesWithLatestState(): Promise<BorneTableRow[]> {
     supabase
       .from("transactions")
       .select("borne_id, montant, paiement_at")
-      .gte("paiement_at", dayAgo),
+      .gte("paiement_at", dayAgo)
+      .gt("montant", 0),
     supabase.from("partenaires").select("id, telephone, logo_url"),
   ]);
 
@@ -173,7 +174,12 @@ export async function getBorneById(id: string): Promise<BorneTableRow> {
       .order("timestamp", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    supabase.from("transactions").select("montant").eq("borne_id", id).gte("paiement_at", dayAgo),
+    supabase
+      .from("transactions")
+      .select("montant")
+      .eq("borne_id", id)
+      .gte("paiement_at", dayAgo)
+      .gt("montant", 0),
   ]);
 
   if (borneRes.error || !borneRes.data) notFound();

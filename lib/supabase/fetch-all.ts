@@ -11,6 +11,7 @@ export type TxFilters = {
   sinceISO?: string;
   untilISO?: string;
   borneId?: string;
+  montantPositif?: boolean;
 };
 
 export type TxLite = {
@@ -34,6 +35,7 @@ function buildPageQuery(supabase: Admin, filters: TxFilters, select: string, fro
   if (filters.sinceISO) q = q.gte("paiement_at", filters.sinceISO);
   if (filters.untilISO) q = q.lt("paiement_at", filters.untilISO);
   if (filters.borneId) q = q.eq("borne_id", filters.borneId);
+  if (filters.montantPositif) q = q.gt("montant", 0);
 
   return q;
 }
