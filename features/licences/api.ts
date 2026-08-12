@@ -1,8 +1,11 @@
 import "server-only";
 import { env } from "@/lib/env";
 import {
+  type BorneRow,
+  borneRowSchema,
   type CreatedLicence,
   type CreateLicenceInput,
+  type LicenceOverview,
   type LicenceRow,
   licenceRowSchema,
 } from "./schemas";
@@ -85,6 +88,54 @@ export async function listLicences(): Promise<LicenceRow[]> {
   } catch {
     return [];
   }
+}
+
+async function listBornes(): Promise<BorneRow[]> {
+  const token = env.KAPSULE_LICENCES_ADMIN_TOKEN;
+  if (!token) return [];
+  try {
+    const res = await fetch(`${env.KAPSULE_LICENCES_URL}/api/v1/bornes`, {
+      headers: { authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const body = (await res.json()) as { bornes?: unknown };
+    const list = Array.isArray(body.bornes) ? body.bornes : [];
+    const rows: BorneRow[] = [];
+    for (const row of list) {
+      const parsed = borneRowSchema.safeParse(row);
+      if (parsed.success) rows.push(parsed.data);
+    }
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
+export async function listOverview(): Promise<LicenceOverview[]> {
+  const [bornes, licences] = await Promise.all([listBornes(), listLicences()]);
+  const byBorne = new Map<string, LicenceRow[]>();
+  for (const l of licences) {
+    const arr = byBorne.get(l.borneId) ?? [];
+    arr.push(l);
+    byBorne.set(l.borneId, arr);
+  }
+  return bornes.map((b) => {
+    const lics = byBorne.get(b.id) ?? [];
+    const active = lics.find((l) => l.status === "active");
+    const revoked = lics.find((l) => l.status === "revoked");
+    const status = active ? "active" : revoked ? "revoked" : "pending";
+    return {
+      borneId: b.id,
+      tenantId: b.tenantId,
+      tenantName: b.tenantName ?? "—",
+      borneCode: b.code,
+      status,
+      licenseId: active?.id ?? null,
+      createdAt: b.createdAt,
+      lastSeenAt: active?.lastSeenAt ?? b.lastSeenAt,
+    };
+  });
 }
 
 export async function revokeLicence(

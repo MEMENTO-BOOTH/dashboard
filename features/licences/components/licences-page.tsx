@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { type CreateLicenceState, createLicenceAction, revokeLicenceAction } from "../actions";
-import type { LicenceRow } from "../schemas";
+import type { LicenceOverview, LicenceStatus } from "../schemas";
 
 const initialState: CreateLicenceState = { error: null, licence: null };
 
@@ -31,14 +31,20 @@ function formatSeen(iso: string | null): string {
   return format(new Date(iso), "d MMM yyyy 'à' HH:mm", { locale: fr });
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: LicenceStatus }) {
   if (status === "revoked") return <Badge variant="destructive">Révoquée</Badge>;
-  return <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-500">Active</Badge>;
+  if (status === "active")
+    return (
+      <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-500">Active</Badge>
+    );
+  return <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-500">En attente</Badge>;
 }
 
-function RevokeButton({ licence }: { licence: LicenceRow }) {
+function RevokeButton({ row }: { row: LicenceOverview }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  if (row.status !== "active" || !row.licenseId) return null;
+  const licenseId = row.licenseId;
   return (
     <Button
       variant="outline"
@@ -46,7 +52,7 @@ function RevokeButton({ licence }: { licence: LicenceRow }) {
       disabled={pending}
       onClick={() =>
         start(async () => {
-          await revokeLicenceAction(licence.tenantId, licence.borneId, licence.id);
+          await revokeLicenceAction(row.tenantId, row.borneId, licenseId);
           router.refresh();
         })
       }
@@ -56,7 +62,7 @@ function RevokeButton({ licence }: { licence: LicenceRow }) {
   );
 }
 
-export function LicencesPage({ licences }: { licences: LicenceRow[] }) {
+export function LicencesPage({ overview }: { overview: LicenceOverview[] }) {
   const [state, formAction, isPending] = useActionState(createLicenceAction, initialState);
   const router = useRouter();
   const clientId = useId();
@@ -137,7 +143,7 @@ export function LicencesPage({ licences }: { licences: LicenceRow[] }) {
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold leading-7 text-foreground">
-          Licences existantes ({licences.length})
+          Bornes sous licence ({overview.length})
         </h2>
         <Card className="w-full overflow-hidden">
           <div className="overflow-x-auto">
@@ -153,20 +159,20 @@ export function LicencesPage({ licences }: { licences: LicenceRow[] }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {licences.length === 0 ? (
+                {overview.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
                     <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                      Aucune licence pour le moment.
+                      Aucune borne pour le moment.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  licences.map((row) => (
-                    <TableRow key={row.id}>
+                  overview.map((row) => (
+                    <TableRow key={row.borneId}>
                       <TableCell className="pl-6 font-medium text-foreground">
-                        {row.tenantName ?? "—"}
+                        {row.tenantName}
                       </TableCell>
                       <TableCell className="font-mono text-[13px] text-muted-foreground">
-                        {row.borneCode ?? "—"}
+                        {row.borneCode}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={row.status} />
@@ -178,7 +184,7 @@ export function LicencesPage({ licences }: { licences: LicenceRow[] }) {
                         {formatSeen(row.lastSeenAt)}
                       </TableCell>
                       <TableCell className="pr-6 text-right">
-                        {row.status === "revoked" ? null : <RevokeButton licence={row} />}
+                        <RevokeButton row={row} />
                       </TableCell>
                     </TableRow>
                   ))

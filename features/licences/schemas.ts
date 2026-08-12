@@ -28,3 +28,26 @@ export const licenceRowSchema = z.object({
   lastSeenAt: z.string().nullable(),
 });
 export type LicenceRow = z.infer<typeof licenceRowSchema>;
+
+export const borneRowSchema = z.object({
+  id: z.string(),
+  tenantId: z.string(),
+  tenantName: z.string().nullable(),
+  code: z.string(),
+  createdAt: z.string(),
+  lastSeenAt: z.string().nullable(),
+});
+export type BorneRow = z.infer<typeof borneRowSchema>;
+
+export type LicenceStatus = "pending" | "active" | "revoked";
+
+export interface LicenceOverview {
+  borneId: string;
+  tenantId: string;
+  tenantName: string;
+  borneCode: string;
+  status: LicenceStatus;
+  licenseId: string | null;
+  createdAt: string;
+  lastSeenAt: string | null;
+}
