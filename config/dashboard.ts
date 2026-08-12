@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  CalendarDays,
   ChartNoAxesCombined,
   Coins,
   LayoutDashboard,
@@ -21,6 +22,7 @@ export const dashboardNav: NavItem[] = [
   { title: "Home", href: "/", icon: LayoutDashboard },
   { title: "Postal", href: "/postal", icon: Mailbox },
   { title: "Mon parc", href: "/parc", icon: MapPinned },
+  { title: "Événements", href: "/evenements", icon: CalendarDays },
   { title: "Jetons", href: "/jetons", icon: Coins, requiredPermission: "jetons.view" },
   {
     title: "Finance",
