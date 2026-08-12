@@ -65,57 +65,54 @@ export function LicencesPage({ licences }: { licences: LicenceRow[] }) {
   }
 
   return (
-    <div className="flex w-full flex-col gap-8 pt-4">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold leading-8 text-foreground">Licences</h1>
-        <p className="text-sm leading-5 text-muted-foreground">
-          Crée un code d'activation pour un client et gère les licences existantes.
-        </p>
-      </div>
-
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold leading-7 text-foreground">Nouvelle licence</h2>
-        <form action={formAction} className="flex max-w-[720px] flex-col gap-5">
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Input
-              id={clientId}
-              name="clientName"
-              label="Nom du client"
-              placeholder="Bar du Coin"
-              autoComplete="off"
-              required
-              size="lg"
-            />
-            <Input
-              id={borneCodeId}
-              name="borneCode"
-              label="Code de la borne"
-              placeholder="BAR-01"
-              autoComplete="off"
-              required
-              size="lg"
-            />
+    <div className="flex w-full flex-col gap-12 pt-6">
+      <div className="mx-auto flex w-full max-w-[440px] flex-col gap-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+            <KeyRound className="size-6 text-primary" />
           </div>
-          {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
-          <Button
-            type="submit"
-            variant="primary"
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-2xl font-semibold leading-8 text-foreground">Nouvelle licence</h1>
+            <p className="text-sm leading-5 text-muted-foreground">
+              Génère un code d'activation à donner à un client pour sa borne.
+            </p>
+          </div>
+        </div>
+
+        <form action={formAction} className="flex flex-col gap-5">
+          <Input
+            id={clientId}
+            name="clientName"
+            label="Nom du client"
+            placeholder="Bar du Coin"
+            autoComplete="off"
+            required
             size="lg"
-            loading={isPending}
-            className="w-full sm:w-fit"
-          >
+          />
+          <Input
+            id={borneCodeId}
+            name="borneCode"
+            label="Code de la borne"
+            placeholder="BAR-01"
+            autoComplete="off"
+            required
+            size="lg"
+          />
+          {state.error ? (
+            <p className="text-center text-sm text-destructive">{state.error}</p>
+          ) : null}
+          <Button type="submit" variant="primary" size="lg" loading={isPending} className="w-full">
             Générer le code d'activation
           </Button>
         </form>
 
         {licence ? (
-          <div className="flex max-w-[720px] flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <KeyRound className="size-4 text-primary" />
+          <div className="flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+            <p className="text-center text-sm font-medium text-foreground">
               Code pour {licence.clientName} — borne {licence.borneCode}
-            </div>
+            </p>
             <div className="flex items-center gap-3">
-              <code className="flex-1 rounded-md bg-background px-4 py-3 font-mono text-[15px] break-all text-foreground">
+              <code className="flex-1 rounded-md bg-background px-4 py-3 text-center font-mono text-[15px] break-all text-foreground">
                 {licence.code}
               </code>
               <Button type="button" variant="outline" onClick={() => copy(licence.code)}>
@@ -123,12 +120,12 @@ export function LicencesPage({ licences }: { licences: LicenceRow[] }) {
                 {copied ? "Copié" : "Copier"}
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Donne ce code au client : il le tape sur l'écran d'activation de sa borne.
+            <p className="text-center text-sm text-muted-foreground">
+              Le client tape ce code sur l'écran d'activation de sa borne.
             </p>
           </div>
         ) : null}
-      </section>
+      </div>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold leading-7 text-foreground">
