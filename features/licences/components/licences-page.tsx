@@ -1,15 +1,53 @@
 "use client";
 
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { KeyRound } from "lucide-react";
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { type CreateLicenceState, createLicenceAction } from "../actions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { type CreateLicenceState, createLicenceAction, revokeLicenceAction } from "../actions";
+import type { LicenceRow } from "../schemas";
 
 const initialState: CreateLicenceState = { error: null, licence: null };
 
-export function LicencesPage() {
+function formatDate(iso: string): string {
+  return format(new Date(iso), "d MMM yyyy", { locale: fr });
+}
+
+function formatSeen(iso: string | null): string {
+  if (!iso) return "Jamais";
+  return format(new Date(iso), "d MMM yyyy 'à' HH:mm", { locale: fr });
+}
+
+function RevokeButton({ licence }: { licence: LicenceRow }) {
+  const [pending, start] = useTransition();
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={pending}
+      onClick={() =>
+        start(async () => {
+          await revokeLicenceAction(licence.tenantId, licence.borneId, licence.id);
+        })
+      }
+    >
+      {pending ? "…" : "Révoquer"}
+    </Button>
+  );
+}
+
+export function LicencesPage({ licences }: { licences: LicenceRow[] }) {
   const [state, formAction, isPending] = useActionState(createLicenceAction, initialState);
   const clientId = useId();
   const borneCodeId = useId();
@@ -21,15 +59,15 @@ export function LicencesPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[560px] flex-col gap-6 pt-4">
+    <div className="mx-auto flex w-full max-w-[960px] flex-col gap-8 pt-4">
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold leading-8 text-foreground">Créer une licence</h1>
+        <h1 className="text-2xl font-semibold leading-8 text-foreground">Licences</h1>
         <p className="text-sm leading-5 text-muted-foreground">
-          Génère un code d'activation à donner à un client pour sa borne.
+          Crée un code d'activation pour un client et gère les licences existantes.
         </p>
       </div>
 
-      <form action={formAction} className="flex flex-col gap-5">
+      <form action={formAction} className="flex flex-col gap-5 sm:max-w-[560px]">
         <Input
           id={clientId}
           name="clientName"
@@ -81,6 +119,44 @@ export function LicencesPage() {
           </CardContent>
         </Card>
       ) : null}
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold leading-7 text-foreground">
+          Licences existantes ({licences.length})
+        </h2>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Client</TableHead>
+              <TableHead>Borne</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Créée le</TableHead>
+              <TableHead>Dernière connexion</TableHead>
+              <TableHead className="text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {licences.map((row) => (
+              <TableRow key={row.id}>
+                <TableCell className="font-medium">{row.tenantName ?? "—"}</TableCell>
+                <TableCell>{row.borneCode ?? "—"}</TableCell>
+                <TableCell>
+                  {row.status === "revoked" ? (
+                    <span className="text-destructive">Révoquée</span>
+                  ) : (
+                    <span className="text-emerald-600 dark:text-emerald-500">Active</span>
+                  )}
+                </TableCell>
+                <TableCell>{formatDate(row.createdAt)}</TableCell>
+                <TableCell>{formatSeen(row.lastSeenAt)}</TableCell>
+                <TableCell className="text-right">
+                  {row.status === "revoked" ? null : <RevokeButton licence={row} />}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

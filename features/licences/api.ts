@@ -1,6 +1,11 @@
 import "server-only";
 import { env } from "@/lib/env";
-import type { CreatedLicence, CreateLicenceInput } from "./schemas";
+import {
+  type CreatedLicence,
+  type CreateLicenceInput,
+  type LicenceRow,
+  licenceRowSchema,
+} from "./schemas";
 
 function slugify(name: string): string {
   const base = name
@@ -12,12 +17,16 @@ function slugify(name: string): string {
   return base || "client";
 }
 
+function adminHeaders(token: string): Record<string, string> {
+  return { "content-type": "application/json", authorization: `Bearer ${token}` };
+}
+
 async function adminPost(path: string, body: unknown): Promise<Record<string, unknown>> {
   const token = env.KAPSULE_LICENCES_ADMIN_TOKEN;
   if (!token) throw new Error("KAPSULE_LICENCES_ADMIN_TOKEN manquant côté serveur");
   const res = await fetch(`${env.KAPSULE_LICENCES_URL}${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    headers: adminHeaders(token),
     body: JSON.stringify(body),
     cache: "no-store",
   });
@@ -54,4 +63,45 @@ export async function createClientLicence(input: CreateLicenceInput): Promise<Cr
     clientName: input.clientName,
     borneCode: input.borneCode,
   };
+}
+
+export async function listLicences(): Promise<LicenceRow[]> {
+  const token = env.KAPSULE_LICENCES_ADMIN_TOKEN;
+  if (!token) return [];
+  try {
+    const res = await fetch(`${env.KAPSULE_LICENCES_URL}/api/v1/licenses`, {
+      headers: { authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const body = (await res.json()) as { licenses?: unknown };
+    const list = Array.isArray(body.licenses) ? body.licenses : [];
+    const rows: LicenceRow[] = [];
+    for (const row of list) {
+      const parsed = licenceRowSchema.safeParse(row);
+      if (parsed.success) rows.push(parsed.data);
+    }
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
+export async function revokeLicence(
+  tenantId: string,
+  borneId: string,
+  licenseId: string,
+): Promise<boolean> {
+  const token = env.KAPSULE_LICENCES_ADMIN_TOKEN;
+  if (!token) return false;
+  const res = await fetch(
+    `${env.KAPSULE_LICENCES_URL}/api/v1/tenants/${tenantId}/bornes/${borneId}/licenses/${licenseId}/revoke`,
+    {
+      method: "POST",
+      headers: adminHeaders(token),
+      body: JSON.stringify({ reason: "Révoqué depuis le dashboard" }),
+      cache: "no-store",
+    },
+  );
+  return res.ok;
 }

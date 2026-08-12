@@ -1,7 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getSessionUser } from "@/features/auth/session";
-import { createClientLicence } from "./api";
+import { createClientLicence, revokeLicence } from "./api";
 import { type CreatedLicence, createLicenceSchema } from "./schemas";
 
 export type CreateLicenceState = {
@@ -26,8 +27,21 @@ export async function createLicenceAction(
 
   try {
     const licence = await createClientLicence(parsed.data);
+    revalidatePath("/licences");
     return { error: null, licence };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Erreur inconnue", licence: null };
   }
+}
+
+export async function revokeLicenceAction(
+  tenantId: string,
+  borneId: string,
+  licenseId: string,
+): Promise<{ ok: boolean }> {
+  const session = await getSessionUser();
+  if (!session) return { ok: false };
+  const ok = await revokeLicence(tenantId, borneId, licenseId);
+  if (ok) revalidatePath("/licences");
+  return { ok };
 }

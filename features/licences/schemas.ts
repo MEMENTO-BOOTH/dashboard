@@ -13,3 +13,18 @@ export interface CreatedLicence {
   clientName: string;
   borneCode: string;
 }
+
+export const licenceRowSchema = z.object({
+  id: z.string(),
+  tenantId: z.string(),
+  tenantName: z.string().nullable(),
+  borneId: z.string(),
+  borneCode: z.string().nullable(),
+  status: z.string(),
+  plan: z.string(),
+  createdAt: z.string(),
+  expiresAt: z.string(),
+  revokedAt: z.string().nullable(),
+  lastSeenAt: z.string().nullable(),
+});
+export type LicenceRow = z.infer<typeof licenceRowSchema>;
