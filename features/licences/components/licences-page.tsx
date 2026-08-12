@@ -3,7 +3,8 @@
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Check, Copy, KeyRound } from "lucide-react";
-import { useActionState, useId, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useId, useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,6 +37,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function RevokeButton({ licence }: { licence: LicenceRow }) {
+  const router = useRouter();
   const [pending, start] = useTransition();
   return (
     <Button
@@ -45,6 +47,7 @@ function RevokeButton({ licence }: { licence: LicenceRow }) {
       onClick={() =>
         start(async () => {
           await revokeLicenceAction(licence.tenantId, licence.borneId, licence.id);
+          router.refresh();
         })
       }
     >
@@ -55,10 +58,15 @@ function RevokeButton({ licence }: { licence: LicenceRow }) {
 
 export function LicencesPage({ licences }: { licences: LicenceRow[] }) {
   const [state, formAction, isPending] = useActionState(createLicenceAction, initialState);
+  const router = useRouter();
   const clientId = useId();
   const borneCodeId = useId();
   const [copied, setCopied] = useState(false);
   const licence = state.licence;
+
+  useEffect(() => {
+    if (state.licence) router.refresh();
+  }, [state.licence, router]);
 
   function copy(code: string) {
     void navigator.clipboard.writeText(code).then(() => setCopied(true));
