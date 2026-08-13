@@ -49,5 +49,6 @@ export interface LicenceOverview {
   status: LicenceStatus;
   licenseId: string | null;
   createdAt: string;
+  expiresAt: string | null;
   lastSeenAt: string | null;
 }

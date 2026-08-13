@@ -133,6 +133,7 @@ export async function listOverview(): Promise<LicenceOverview[]> {
       status,
       licenseId: active?.id ?? null,
       createdAt: b.createdAt,
+      expiresAt: active?.expiresAt ?? revoked?.expiresAt ?? null,
       lastSeenAt: active?.lastSeenAt ?? b.lastSeenAt,
     };
   });

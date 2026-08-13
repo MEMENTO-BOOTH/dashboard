@@ -154,6 +154,7 @@ export function LicencesPage({ overview }: { overview: LicenceOverview[] }) {
                   <TableHead>Borne</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Créée le</TableHead>
+                  <TableHead>Expire le</TableHead>
                   <TableHead>Dernière connexion</TableHead>
                   <TableHead className="pr-6 text-right">Action</TableHead>
                 </TableRow>
@@ -161,7 +162,7 @@ export function LicencesPage({ overview }: { overview: LicenceOverview[] }) {
               <TableBody>
                 {overview.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                       Aucune borne pour le moment.
                     </TableCell>
                   </TableRow>
@@ -179,6 +180,9 @@ export function LicencesPage({ overview }: { overview: LicenceOverview[] }) {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {formatDate(row.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {row.expiresAt ? formatDate(row.expiresAt) : "—"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {formatSeen(row.lastSeenAt)}
