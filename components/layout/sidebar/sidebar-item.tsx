@@ -31,20 +31,20 @@ export function SidebarItem({ href, icon, label, indicator }: SidebarItemProps) 
       data-active={isActive || undefined}
       title={label}
       className={cn(
-        "flex w-full items-center gap-2 rounded-[8px] p-2",
-        "text-[14px] leading-5 font-normal text-sidebar-foreground",
+        "flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5",
+        "text-[15px] leading-6 font-normal text-sidebar-foreground",
         "transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         "data-[active]:bg-sidebar-accent data-[active]:font-medium data-[active]:text-sidebar-accent-foreground",
         "group-data-[collapsed]/sidebar:justify-center",
       )}
     >
-      <span className="shrink-0 [&_svg]:size-4">{icon}</span>
+      <span className="shrink-0 [&_svg]:size-5">{icon}</span>
       <span className="min-w-0 flex-1 truncate group-data-[collapsed]/sidebar:hidden">{label}</span>
       {indicator === "right" ? (
-        <ChevronRight className="size-4 shrink-0 opacity-60 group-data-[collapsed]/sidebar:hidden" />
+        <ChevronRight className="size-5 shrink-0 opacity-60 group-data-[collapsed]/sidebar:hidden" />
       ) : null}
       {indicator === "down" ? (
-        <ChevronDown className="size-4 shrink-0 opacity-60 group-data-[collapsed]/sidebar:hidden" />
+        <ChevronDown className="size-5 shrink-0 opacity-60 group-data-[collapsed]/sidebar:hidden" />
       ) : null}
     </Link>
   );

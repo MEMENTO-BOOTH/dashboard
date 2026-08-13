@@ -25,7 +25,7 @@ export function Sidebar({
     >
       <SidebarHeader />
 
-      <div className="flex w-full flex-1 flex-col items-start gap-1 overflow-y-auto p-2 pb-[76px]">
+      <div className="flex w-full flex-1 flex-col items-start gap-1.5 overflow-y-auto p-3 pb-[76px]">
         {items.map((item) => (
           <SidebarItem key={item.href} href={item.href} icon={<item.icon />} label={item.title} />
         ))}
