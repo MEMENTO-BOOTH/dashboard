@@ -13,6 +13,9 @@ const serverSchema = z.object({
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   KAPSULE_API_URL: z.string().url().default("https://api.kapsule-photo.com"),
   CRON_SECRET: z.string().min(1).optional(),
+  CLOUDINARY_CLOUD_NAME: z.string().min(1).default("mementobooth"),
+  CLOUDINARY_API_KEY: z.string().min(1).optional(),
+  CLOUDINARY_API_SECRET: z.string().min(1).optional(),
 });
 
 const clientSchema = z.object({
@@ -34,6 +37,9 @@ const processEnv = {
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   KAPSULE_API_URL: process.env.KAPSULE_API_URL,
   CRON_SECRET: process.env.CRON_SECRET,
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,

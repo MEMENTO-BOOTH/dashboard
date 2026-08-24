@@ -117,8 +117,10 @@ export type Database = {
           partenaire_id: string | null;
           setup_done: boolean | null;
           statut: Database["public"]["Enums"]["borne_statut"];
+          token: string | null;
           updated_at: string;
           ville: string;
+          watermark: Json | null;
         };
         Insert: {
           adresse?: string | null;
@@ -134,8 +136,10 @@ export type Database = {
           partenaire_id?: string | null;
           setup_done?: boolean | null;
           statut?: Database["public"]["Enums"]["borne_statut"];
+          token?: string | null;
           updated_at?: string;
           ville: string;
+          watermark?: Json | null;
         };
         Update: {
           adresse?: string | null;
@@ -151,8 +155,10 @@ export type Database = {
           partenaire_id?: string | null;
           setup_done?: boolean | null;
           statut?: Database["public"]["Enums"]["borne_statut"];
+          token?: string | null;
           updated_at?: string;
           ville?: string;
+          watermark?: Json | null;
         };
         Relationships: [
           {
