@@ -13,17 +13,17 @@ function signParams(params: Record<string, string>, secret: string): string {
   return createHash("sha1").update(`${toSign}${secret}`).digest("hex");
 }
 
-export function barLogoPublicId(code: string): string {
-  return `bar_logo_${code}`;
+export function barLogoPublicId(code: string, suffix?: string): string {
+  return suffix !== undefined ? `bar_logo_${code}_${suffix}` : `bar_logo_${code}`;
 }
 
-export async function uploadBarLogo(code: string, file: Blob): Promise<string> {
+export async function uploadBarLogo(code: string, file: Blob, suffix?: string): Promise<string> {
   const key = env.CLOUDINARY_API_KEY;
   const secret = env.CLOUDINARY_API_SECRET;
   if (!(key && secret)) throw new Error("cloudinary_not_configured");
 
   const timestamp = Math.floor(Date.now() / 1000).toString();
-  const publicId = barLogoPublicId(code);
+  const publicId = barLogoPublicId(code, suffix);
   const signed = { overwrite: "true", public_id: publicId, timestamp };
   const signature = signParams(signed, secret);
 
