@@ -1,10 +1,12 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveReconnected } from "./resolver";
 
 // Détecte les bornes éteintes depuis >3j (et installées depuis >48h pour exclure les
 // fresh installs) puis ouvre une alerte type=borne_eteinte_3_jours. Anti-spam : skip
 // si une alerte du même type est déjà ouverte pour la borne. Gravité critique en base
-// (déclenche SMS via trigger Postgres). Résolution auto via trigger Postgres on heartbeats.
+// (déclenche SMS via trigger Postgres). Résolution auto quand la borne reconnecte :
+// gérée côté cron par resolveReconnected() (le trigger Postgres prévu ne tournait pas).
 
 export const ALERT_TYPE = "borne_eteinte_3_jours" as const;
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
@@ -35,6 +37,8 @@ export type CronResult = {
   matched: number;
   inserted: number;
   skipped: number;
+  resolved: number;
+  resolvedChecked: number;
   preview?: { borne_id: string; nom_lieu: string }[];
 };
 
@@ -80,10 +84,17 @@ export async function detectBornesEteintes(now: Date = new Date()): Promise<Born
 
 export async function runCron(dry: boolean, now: Date = new Date()): Promise<CronResult> {
   const supabase = createAdminClient();
+
+  // Résolution auto d'abord : si une borne a déjà réémis des heartbeats récents,
+  // on ferme son alerte avant de redétecter, pour qu'elle ne soit pas re-skippée
+  // en "already open" au tour suivant.
+  const rr = dry ? { checked: 0, resolved: 0 } : await resolveReconnected(now);
+  const resolveFields = { resolved: rr.resolved, resolvedChecked: rr.checked };
+
   const matched = await detectBornesEteintes(now);
 
   if (matched.length === 0) {
-    return { dry, matched: 0, inserted: 0, skipped: 0 };
+    return { dry, matched: 0, inserted: 0, skipped: 0, ...resolveFields };
   }
 
   const { data: existing } = await supabase
@@ -104,6 +115,7 @@ export async function runCron(dry: boolean, now: Date = new Date()): Promise<Cro
       matched: matched.length,
       inserted: 0,
       skipped: matched.length - toInsert.length,
+      ...resolveFields,
       preview: toInsert.map((m) => ({ borne_id: m.borne_id, nom_lieu: m.nom_lieu })),
     };
   }
@@ -132,5 +144,6 @@ export async function runCron(dry: boolean, now: Date = new Date()): Promise<Cro
     matched: matched.length,
     inserted: rows.length,
     skipped: matched.length - rows.length,
+    ...resolveFields,
   };
 }
