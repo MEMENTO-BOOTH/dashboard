@@ -9,7 +9,10 @@ export type Permission =
   | "interventions.complete"
   | "jetons.view"
   | "commandes.assign"
-  | "commandes.expedite";
+  | "commandes.expedite"
+  | "incidents.view"
+  | "incidents.manage"
+  | "incidents.settings";
 
 export type Permissions = Partial<Record<Permission, boolean>>;
 

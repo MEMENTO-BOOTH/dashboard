@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Coins, Hammer, UsersRound, Warehouse } from "lucide-react";
+import { Coins, Hammer, Siren, UsersRound, Warehouse } from "lucide-react";
 import type { Permission } from "@/features/auth/permissions";
 
 export type PermissionEntry = {
@@ -56,6 +56,23 @@ export const PERMISSIONS_CATALOG: PermissionGroup[] = [
         key: "roles.manage",
         label: "Gérer les rôles",
         description: "Créer et modifier les rôles et leurs permissions",
+      },
+    ],
+  },
+  {
+    title: "Incidents",
+    icon: Siren,
+    permissions: [
+      { key: "incidents.view", label: "Voir la page Incidents" },
+      {
+        key: "incidents.manage",
+        label: "Gérer les incidents",
+        description: "Déplacer, attribuer, créer, clôturer et classer en fausse alerte",
+      },
+      {
+        key: "incidents.settings",
+        label: "Paramètres de la page Incidents",
+        description: "Colonnes, règles automatiques et réglages de surveillance",
       },
     ],
   },

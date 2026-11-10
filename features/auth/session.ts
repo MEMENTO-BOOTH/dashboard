@@ -18,6 +18,9 @@ const ALL_PERMISSIONS_GRANTED: Permissions = {
   "jetons.view": true,
   "commandes.assign": true,
   "commandes.expedite": true,
+  "incidents.view": true,
+  "incidents.manage": true,
+  "incidents.settings": true,
 };
 
 export type SessionUser = {

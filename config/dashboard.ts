@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Mailbox,
   MapPinned,
+  Siren,
   Users,
 } from "lucide-react";
 import type { Permission } from "@/features/auth/permissions";
@@ -21,6 +22,12 @@ export const dashboardNav: NavItem[] = [
   { title: "Home", href: "/", icon: LayoutDashboard },
   { title: "Postal", href: "/postal", icon: Mailbox },
   { title: "Mon parc", href: "/parc", icon: MapPinned },
+  {
+    title: "Incidents",
+    href: "/incidents",
+    icon: Siren,
+    requiredPermission: "incidents.view",
+  },
   { title: "Jetons", href: "/jetons", icon: Coins, requiredPermission: "jetons.view" },
   {
     title: "Finance",

@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/check-bornes-eteintes",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/ingest-incidents",
+      "schedule": "*/5 * * * *"
     }
   ]
 }
