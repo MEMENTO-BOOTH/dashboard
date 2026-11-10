@@ -8,16 +8,25 @@ import { incidentToUpdateRow } from "../mappers";
 import { type MoveIncidentInput, moveIncidentSchema, type ReopenIncidentInput } from "../schemas";
 import { insertIncidentEvents, requireIncidentsPermission } from "./common";
 
-export type MoveActionResult = { ok: true } | { ok: false; need: "assignee" | "origin" };
+export type MoveActionResult =
+  | { ok: true }
+  | { ok: false; need: "assignee" | "origin" }
+  | { ok: false; error: string };
 
 export async function moveIncidentAction(input: MoveIncidentInput): Promise<MoveActionResult> {
   const session = await requireIncidentsPermission("incidents.manage");
   const parsed = moveIncidentSchema.parse(input);
   const [incident, columns] = await Promise.all([getIncidentById(parsed.incidentId), getColumns()]);
-  if (!incident) throw new Error("Incident introuvable.");
+  if (!incident) {
+    return {
+      ok: false,
+      error: "Cet incident n'existe plus (borne supprimée ?). Le tableau va se rafraîchir.",
+    };
+  }
   const from = columns.find((c) => c.id === incident.columnId);
   const to = columns.find((c) => c.id === parsed.toColumnId);
-  if (!(from && to)) throw new Error("Colonne introuvable.");
+  if (!(from && to))
+    return { ok: false, error: "Colonne introuvable. Le tableau va se rafraîchir." };
 
   try {
     const { incident: next, events } = applyMove(incident, from, to, session.id, new Date());

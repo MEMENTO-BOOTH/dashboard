@@ -38,6 +38,18 @@ export async function getNewAlertRows(since: Date): Promise<NewAlertRow[]> {
   return data ?? [];
 }
 
+/** Alertes encore ouvertes/assignées, quel que soit leur âge (rattrapage des cartes manquantes). */
+export async function getOpenAlertRows(): Promise<NewAlertRow[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("alertes")
+    .select("borne_id, type, created_at")
+    .in("statut", ["ouverte", "assignee"])
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 /** Clés `type|borne_id` ayant au moins une alerte ouverte/assignée actuellement. */
 export async function getOpenAlertKeys(): Promise<Set<string>> {
   const supabase = createAdminClient();

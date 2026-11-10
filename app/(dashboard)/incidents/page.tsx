@@ -7,6 +7,8 @@ import {
   getAllIncidents,
   getBornesForIncidents,
   getColumns,
+  getIgnoredSignals,
+  getNoteCounts,
   getSettings,
   getSignalRules,
 } from "@/features/incidents/api";
@@ -17,14 +19,17 @@ export default async function IncidentsPage() {
   const session = await getSessionUser();
   if (!(session && can(session.permissions, "incidents.view"))) notFound();
 
-  const [incidents, columns, signalRules, settings, bornes, assignees] = await Promise.all([
-    getAllIncidents(),
-    getColumns(),
-    getSignalRules(),
-    getSettings(),
-    getBornesForIncidents(),
-    getAssignees(),
-  ]);
+  const [incidents, columns, signalRules, settings, bornes, assignees, ignoredSignals, noteCounts] =
+    await Promise.all([
+      getAllIncidents(),
+      getColumns(),
+      getSignalRules(),
+      getSettings(),
+      getBornesForIncidents(),
+      getAssignees(),
+      getIgnoredSignals(),
+      getNoteCounts(),
+    ]);
 
   return (
     <IncidentsBoard
@@ -34,6 +39,8 @@ export default async function IncidentsPage() {
       settings={settings}
       bornes={bornes}
       assignees={assignees}
+      ignoredSignals={[...ignoredSignals]}
+      noteCounts={Object.fromEntries(noteCounts)}
       canManage={can(session.permissions, "incidents.manage")}
       canSettings={can(session.permissions, "incidents.settings")}
       currentUserId={session.id}

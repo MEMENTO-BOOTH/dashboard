@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DialogContent, DialogRoot, DialogTitle } from "@/components/ui/dialog";
+import { DialogContent, DialogDescription, DialogRoot, DialogTitle } from "@/components/ui/dialog";
 import { ORIGIN_LABELS, type Origin } from "../lib";
+import { ORIGIN_ICONS } from "./origin-icons";
 
-const ORIGINS = Object.entries(ORIGIN_LABELS).filter(([key]) => key !== "diag") as [
-  Origin,
-  string,
-][];
+const ORIGINS: Origin[] = ["logiciel", "materiel", "reseau"];
 
 /** RG-07 : l'origine est obligatoire pour clôturer tant qu'elle vaut « À diagnostiquer ». */
 export function OriginNeededDialog({
@@ -20,32 +17,34 @@ export function OriginNeededDialog({
   onCancel: () => void;
   onConfirm: (origin: Origin) => void;
 }) {
-  const [origin, setOrigin] = useState<Origin | null>(null);
-
   return (
     <DialogRoot open={open} onOpenChange={(v) => !v && onCancel()}>
-      <DialogContent className="w-[90vw] max-w-sm p-5">
-        <DialogTitle className="mb-3 text-base font-semibold">
+      <DialogContent className="w-[92vw] max-w-[560px] rounded-[14px] border-border bg-card p-6 shadow-sm">
+        <DialogTitle className="text-[18px] font-semibold leading-[28px] text-card-foreground">
           Quelle était l'origine de la panne ?
         </DialogTitle>
-        <div className="flex flex-col gap-2">
-          {ORIGINS.map(([value, label]) => (
-            <Button
-              key={value}
-              variant={origin === value ? "primary" : "outline"}
-              className="justify-start"
-              onClick={() => setOrigin(value)}
-            >
-              {label}
-            </Button>
-          ))}
+        <DialogDescription className="mt-1 text-[14px] leading-5 text-muted-foreground">
+          Obligatoire pour clôturer : c'est ce qui rendra tes statistiques par borne fiables.
+        </DialogDescription>
+        <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
+          {ORIGINS.map((origin) => {
+            const Icon = ORIGIN_ICONS[origin];
+            return (
+              <button
+                key={origin}
+                type="button"
+                onClick={() => onConfirm(origin)}
+                className="flex items-center gap-2.5 rounded-[10px] border border-input bg-background px-3 py-2.5 text-left text-sm font-medium hover:bg-muted/60"
+              >
+                <Icon className="size-4" />
+                {ORIGIN_LABELS[origin]}
+              </button>
+            );
+          })}
         </div>
-        <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outline" onClick={onCancel}>
+        <div className="mt-4 flex justify-end">
+          <Button variant="ghost" onClick={onCancel}>
             Annuler
-          </Button>
-          <Button disabled={!origin} onClick={() => origin && onConfirm(origin)}>
-            Confirmer
           </Button>
         </div>
       </DialogContent>

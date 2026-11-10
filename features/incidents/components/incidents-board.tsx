@@ -1,11 +1,22 @@
 "use client";
 
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
-import { useCallback, useMemo, useState } from "react";
+import {
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { useCallback, useId, useMemo, useState } from "react";
 import type { BoardData } from "../hooks/types";
-import { filterIncidents, useIncidentFilters } from "../hooks/use-incident-filters";
+import {
+  filterIncidents,
+  hasActiveFilters,
+  useIncidentFilters,
+} from "../hooks/use-incident-filters";
 import { useIncidentsBoard } from "../hooks/use-incidents-board";
-import { indexColumns } from "../lib";
+import { columnByRole, indexColumns } from "../lib";
 import { AssigneeNeededDialog } from "./assignee-needed-dialog";
 import { BoardFilters } from "./board-filters";
 import { BoardHeader } from "./board-header";
@@ -17,14 +28,19 @@ import { SettingsDialog } from "./settings-dialog";
 
 export function IncidentsBoard(data: BoardData) {
   const board = useIncidentsBoard(data);
+  const dndId = useId();
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor),
+  );
   const { filters, setFilters } = useIncidentFilters();
   const [newOpen, setNewOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const columnsById = useMemo(() => indexColumns(data.columns), [data.columns]);
   const bornesById = useMemo(() => new Map(data.bornes.map((b) => [b.id, b])), [data.bornes]);
-  const assigneeNameById = useMemo(
-    () => new Map(data.assignees.map((a) => [a.id, a.nom])),
+  const assigneeById = useMemo(
+    () => new Map(data.assignees.map((a) => [a.id, { nom: a.nom, logoUrl: a.logo_url }])),
     [data.assignees],
   );
   const borneLabel = useCallback(
@@ -36,9 +52,17 @@ export function IncidentsBoard(data: BoardData) {
   );
 
   const visible = useMemo(
-    () => filterIncidents(board.incidents, filters, borneLabel),
-    [board.incidents, filters, borneLabel],
+    () =>
+      filterIncidents(board.incidents, filters, {
+        currentUserId: data.currentUserId,
+        borneLabel,
+        columnsById,
+        settings: data.settings,
+      }),
+    [board.incidents, filters, borneLabel, data.currentUserId, columnsById, data.settings],
   );
+  const filtering = hasActiveFilters(filters);
+  const entreeName = columnByRole(data.columns, "entree")?.name ?? "À traiter";
 
   function handleDragEnd(event: DragEndEvent) {
     const incidentId = event.active.id as string;
@@ -56,6 +80,10 @@ export function IncidentsBoard(data: BoardData) {
         columns={data.columns}
         canManage={data.canManage}
         canSettings={data.canSettings}
+        onFilterP1={() => setFilters({ priority: filters.priority[0] === 1 ? [] : [1] })}
+        onFilterUnassigned={() =>
+          setFilters({ assignee: filters.assignee === "none" ? "" : "none" })
+        }
         onNewIncident={() => setNewOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
       />
@@ -65,8 +93,8 @@ export function IncidentsBoard(data: BoardData) {
         bornes={data.bornes}
         assignees={data.assignees}
       />
-      <DndContext onDragEnd={handleDragEnd}>
-        <div className="flex flex-1 gap-3 overflow-x-auto pb-2">
+      <DndContext id={dndId} sensors={sensors} onDragEnd={handleDragEnd}>
+        <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto pb-2">
           {data.columns
             .slice()
             .sort((a, b) => a.position - b.position)
@@ -75,10 +103,13 @@ export function IncidentsBoard(data: BoardData) {
                 key={column.id}
                 column={column}
                 incidents={visible.filter((i) => i.columnId === column.id)}
+                total={board.incidents.filter((i) => i.columnId === column.id).length}
+                filtering={filtering}
                 allIncidents={board.incidents}
                 columnsById={columnsById}
                 bornesById={bornesById}
-                assigneeNameById={assigneeNameById}
+                assigneeById={assigneeById}
+                noteCounts={data.noteCounts}
                 settings={data.settings}
                 onOpen={board.setSelectedId}
               />
@@ -92,15 +123,23 @@ export function IncidentsBoard(data: BoardData) {
           columns={data.columns}
           bornesById={bornesById}
           assignees={data.assignees}
+          allIncidents={board.incidents}
+          columnsById={columnsById}
+          settings={data.settings}
+          signalRules={data.signalRules}
+          currentUserId={data.currentUserId}
           canManage={data.canManage}
           onClose={() => board.setSelectedId(null)}
           onMove={board.move}
+          onSelectIncident={board.setSelectedId}
         />
       )}
 
       <AssigneeNeededDialog
         open={board.pendingMove?.need === "assignee"}
         assignees={data.assignees}
+        currentUserId={data.currentUserId}
+        entreeName={entreeName}
         onCancel={() => board.setPendingMove(null)}
         onConfirm={(assigneeId) => board.resolvePendingMove({ assigneeId })}
       />
@@ -114,14 +153,19 @@ export function IncidentsBoard(data: BoardData) {
         onOpenChange={setNewOpen}
         bornes={data.bornes}
         assignees={data.assignees}
+        currentUserId={data.currentUserId}
+        entreeName={entreeName}
       />
       {data.canSettings && (
         <SettingsDialog
           open={settingsOpen}
           onOpenChange={setSettingsOpen}
           columns={data.columns}
+          incidents={board.incidents}
           settings={data.settings}
           signalRules={data.signalRules}
+          ignoredSignals={data.ignoredSignals}
+          bornes={data.bornes}
         />
       )}
     </div>

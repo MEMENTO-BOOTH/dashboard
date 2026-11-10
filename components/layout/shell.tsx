@@ -12,10 +12,12 @@ export function Shell({
   children,
   user,
   permissions,
+  incidentsP1Count,
 }: {
   children: React.ReactNode;
   user: SidebarFooterProps;
   permissions: Permissions;
+  incidentsP1Count?: number;
 }) {
   const [mode, setMode] = useState<SidebarMode>("expanded");
   const [hovering, setHovering] = useState(false);
@@ -32,7 +34,12 @@ export function Shell({
           collapsed ? "w-[64px]" : "w-[260px]",
         )}
       >
-        <Sidebar collapsed={collapsed} user={user} permissions={permissions} />
+        <Sidebar
+          collapsed={collapsed}
+          user={user}
+          permissions={permissions}
+          incidentsP1Count={incidentsP1Count}
+        />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <Navbar mode={mode} onModeChange={setMode} permissions={permissions} />

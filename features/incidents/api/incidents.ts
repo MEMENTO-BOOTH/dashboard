@@ -15,6 +15,22 @@ export async function getAllIncidents(): Promise<Incident[]> {
   return ((data ?? []) as unknown as IncidentRow[]).map(rowToIncident);
 }
 
+/** Nombre de notes (hors événements automatiques) par incident, pour le pied de carte. */
+export async function getNoteCounts(): Promise<Map<string, number>> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    // biome-ignore lint/suspicious/noExplicitAny: table incident_events ajoutée par migration, types.ts à regénérer
+    .from("incident_events" as any)
+    .select("incident_id")
+    .eq("kind", "note");
+  if (error) throw new Error(error.message);
+  const counts = new Map<string, number>();
+  for (const row of (data ?? []) as unknown as { incident_id: string }[]) {
+    counts.set(row.incident_id, (counts.get(row.incident_id) ?? 0) + 1);
+  }
+  return counts;
+}
+
 export async function getIncidentEvents(incidentId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase

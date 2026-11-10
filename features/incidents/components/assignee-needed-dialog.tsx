@@ -1,55 +1,59 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DialogContent, DialogRoot, DialogTitle } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { DialogContent, DialogDescription, DialogRoot, DialogTitle } from "@/components/ui/dialog";
+import { InitialsAvatar } from "@/components/ui/initials-avatar";
 import type { Assignee } from "@/features/dashboard/alerts";
 
 /** RG-06 : un responsable est obligatoire pour sortir de l'Entrée (sauf vers Rejet). */
 export function AssigneeNeededDialog({
   open,
   assignees,
+  currentUserId,
+  entreeName,
   onCancel,
   onConfirm,
 }: {
   open: boolean;
   assignees: readonly Assignee[];
+  currentUserId: string;
+  entreeName: string;
   onCancel: () => void;
   onConfirm: (assigneeId: string) => void;
 }) {
-  const [assigneeId, setAssigneeId] = useState<string>("");
-
   return (
     <DialogRoot open={open} onOpenChange={(v) => !v && onCancel()}>
-      <DialogContent className="w-[90vw] max-w-sm p-5">
-        <DialogTitle className="mb-3 text-base font-semibold">
+      <DialogContent className="w-[92vw] max-w-[560px] rounded-[14px] border-border bg-card p-6 shadow-sm">
+        <DialogTitle className="text-[18px] font-semibold leading-[28px] text-card-foreground">
           Qui s'occupe de cet incident ?
         </DialogTitle>
-        <Select value={assigneeId} onValueChange={setAssigneeId}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choisir un responsable" />
-          </SelectTrigger>
-          <SelectContent>
-            {assignees.map((a) => (
-              <SelectItem key={a.id} value={a.id}>
+        <DialogDescription className="mt-1 text-[14px] leading-5 text-muted-foreground">
+          Un incident ne quitte pas « {entreeName} » sans responsable. Sinon, personne ne s'en
+          occupe vraiment.
+        </DialogDescription>
+        <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
+          {assignees.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => onConfirm(a.id)}
+              className="flex items-center gap-2.5 rounded-[10px] border border-input bg-background px-3 py-2.5 text-left text-sm font-medium hover:bg-muted/60"
+            >
+              <InitialsAvatar
+                name={a.nom}
+                logoUrl={a.logo_url}
+                className="size-8 rounded-full text-[12px]"
+              />
+              <span>
                 {a.nom}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outline" onClick={onCancel}>
+                {a.id === currentUserId && <span className="text-muted-foreground"> (moi)</span>}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button variant="ghost" onClick={onCancel}>
             Annuler
-          </Button>
-          <Button disabled={!assigneeId} onClick={() => onConfirm(assigneeId)}>
-            Confirmer
           </Button>
         </div>
       </DialogContent>

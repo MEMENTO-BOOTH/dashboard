@@ -2,19 +2,22 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { MapPin, Radio, User } from "lucide-react";
+import { Clock, MapPin, MessageSquare, MonitorSmartphone, User } from "lucide-react";
 import { InitialsAvatar } from "@/components/ui/initials-avatar";
 import { cn } from "@/lib/utils/cn";
 import type { IncidentBorne } from "../api";
-import { type Column, type Incident, isRecurrent, type Settings, seriesSize } from "../lib";
+import { type Column, formatDurationFr, type Incident, isStale, type Settings } from "../lib";
+import { IncidentBadges } from "./incident-badges";
+import { IncidentSourceIcon } from "./incident-source-icon";
 import { PriorityPill } from "./priority-pill";
-import { StatusBanner } from "./status-banner";
+import { StatusBanners } from "./status-banner";
 
 export function IncidentCard({
   incident,
   column,
   borne,
-  assigneeName,
+  assignee,
+  notesCount,
   allIncidents,
   columnsById,
   settings,
@@ -23,7 +26,8 @@ export function IncidentCard({
   incident: Incident;
   column: Column;
   borne: IncidentBorne | undefined;
-  assigneeName: string | undefined;
+  assignee: { nom: string; logoUrl: string | null } | undefined;
+  notesCount: number;
   allIncidents: readonly Incident[];
   columnsById: ReadonlyMap<string, Column>;
   settings: Settings;
@@ -33,8 +37,8 @@ export function IncidentCard({
     id: incident.id,
   });
   const now = new Date();
-  const series = seriesSize(incident, allIncidents, columnsById);
-  const recurrent = isRecurrent(incident, settings);
+  const stale = isStale(incident, column, now, settings);
+  const place = borne ? [borne.code, borne.nomLieu, borne.ville].filter(Boolean).join(" · ") : "";
 
   return (
     <button
@@ -45,66 +49,72 @@ export function IncidentCard({
       onClick={onOpen}
       style={transform ? { transform: CSS.Translate.toString(transform) } : undefined}
       className={cn(
-        "flex w-full flex-col gap-2 rounded-[8px] border border-input bg-background p-3 text-left shadow-xs transition-opacity",
+        "flex w-full flex-col gap-3 rounded-[14px] border border-border bg-card p-4 text-left shadow-sm transition-[box-shadow,opacity] hover:shadow-md",
+        stale && "border-warning",
         isDragging && "z-10 opacity-50",
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <PriorityPill priority={incident.priority} />
-          <span className="text-sm font-medium text-foreground">{incident.title}</span>
+      <div className="flex items-start gap-3">
+        <IncidentSourceIcon incident={incident} size={36} />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <p className="text-[14px] font-medium leading-5 text-card-foreground">{incident.title}</p>
+          {place && (
+            <p className="truncate text-[13px] font-normal leading-5 text-muted-foreground">
+              {place}
+            </p>
+          )}
         </div>
-        {incident.occurrences > 1 && (
-          <span className="shrink-0 text-xs font-medium text-muted-foreground">
-            ×{incident.occurrences}
-          </span>
-        )}
+        <PriorityPill priority={incident.priority} />
       </div>
 
-      {borne && (
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="size-3" />
-          <span>
-            {borne.code} · {borne.nomLieu} · {borne.ville}
-          </span>
-        </div>
-      )}
+      <IncidentBadges
+        incident={incident}
+        allIncidents={allIncidents}
+        columnsById={columnsById}
+        settings={settings}
+      />
 
-      {(incident.returned || recurrent || series > 0 || incident.solution === "provisoire") && (
-        <div className="flex flex-wrap gap-1">
-          {incident.returned && <MiniBadge>Revenu</MiniBadge>}
-          {recurrent && (
-            <MiniBadge>
-              Récurrent·{incident.episodes}×en {settings.recidiveWindowDays}j
-            </MiniBadge>
-          )}
-          {series > 0 && <MiniBadge>Série·{series} bornes</MiniBadge>}
-          {incident.solution === "provisoire" && <MiniBadge>Provisoire</MiniBadge>}
-        </div>
-      )}
+      <StatusBanners incident={incident} column={column} settings={settings} now={now} />
 
-      <StatusBanner incident={incident} column={column} settings={settings} now={now} />
-
-      <div className="flex items-center justify-between pt-1">
-        <div className="flex items-center gap-1.5">
-          {assigneeName ? (
-            <InitialsAvatar name={assigneeName} className="size-5 rounded-full text-[10px]" />
+      <div className="flex items-center justify-between gap-3 border-t border-border pt-3 text-[13px] leading-5 text-muted-foreground">
+        <div className="flex min-w-0 items-center gap-2">
+          {assignee ? (
+            <>
+              <InitialsAvatar
+                name={assignee.nom}
+                logoUrl={assignee.logoUrl}
+                className="size-6 rounded-full text-[10px]"
+              />
+              <span className="truncate text-card-foreground">{assignee.nom}</span>
+            </>
           ) : (
-            <User className="size-3.5 text-muted-foreground" />
+            <>
+              <span className="flex size-6 items-center justify-center rounded-full border border-dashed border-border">
+                <User className="size-3.5" />
+              </span>
+              <span>Sans responsable</span>
+            </>
           )}
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          {incident.source === "auto" && <Radio className="size-3.5" />}
+        <div className="flex shrink-0 items-center gap-3">
+          {incident.intervention === "surplace" && (
+            <MapPin className="size-4" aria-label="Intervention sur place" />
+          )}
+          {incident.intervention === "distance" && (
+            <MonitorSmartphone className="size-4" aria-label="Intervention à distance" />
+          )}
+          {notesCount > 0 && (
+            <span className="flex items-center gap-1">
+              <MessageSquare className="size-4" />
+              {notesCount}
+            </span>
+          )}
+          <span className="flex items-center gap-1" title="Dans cette colonne depuis">
+            <Clock className="size-4" />
+            {formatDurationFr(now.getTime() - incident.movedAt.getTime())}
+          </span>
         </div>
       </div>
     </button>
-  );
-}
-
-function MiniBadge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex h-4.5 items-center rounded-4xl bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
-      {children}
-    </span>
   );
 }

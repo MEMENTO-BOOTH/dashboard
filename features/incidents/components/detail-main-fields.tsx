@@ -1,84 +1,121 @@
 "use client";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { Assignee } from "@/features/dashboard/alerts";
 import type { patchIncidentAction } from "../actions";
-import type { Incident } from "../lib";
-import { AssigneeSelect, OriginButtons, PlannedDateInput, PriorityButtons } from "./detail-fields";
+import { type Column, type Incident, PRIORITIES } from "../lib";
+import { AssigneeSelect, ColumnSelect, PlannedDateInput } from "./detail-fields";
+import {
+  InterventionButtons,
+  OriginButtons,
+  PriorityButtons,
+  SolutionButtons,
+} from "./detail-segmented";
 
 type Patch = Parameters<typeof patchIncidentAction>[0];
 
 export function DetailMainFields({
   incident,
+  columns,
   assignees,
+  currentUserId,
+  canManage,
   patch,
+  onMove,
 }: {
   incident: Incident;
+  columns: readonly Column[];
   assignees: readonly Assignee[];
+  currentUserId: string;
+  canManage: boolean;
   patch: (partial: Patch) => void;
+  onMove: (incidentId: string, toColumnId: string) => void;
 }) {
+  const id = incident.id;
+  const ro = !canManage;
   return (
-    <>
-      <Field label="Priorité">
-        <PriorityButtons
-          value={incident.priority}
-          onChange={(priority) => patch({ incidentId: incident.id, priority })}
+    <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+      <Field label="Colonne">
+        <ColumnSelect
+          value={incident.columnId}
+          columns={columns}
+          onChange={(columnId) => onMove(id, columnId)}
+          disabled={ro}
         />
       </Field>
       <Field label="Responsable">
         <AssigneeSelect
           value={incident.assigneeId}
           assignees={assignees}
-          onChange={(assigneeId) => patch({ incidentId: incident.id, assigneeId })}
+          currentUserId={currentUserId}
+          onChange={(assigneeId) => patch({ incidentId: id, assigneeId })}
+          disabled={ro}
         />
       </Field>
-      <Field label="Origine">
+      <Field label="Priorité" full>
+        <PriorityButtons
+          value={incident.priority}
+          onChange={(priority) => patch({ incidentId: id, priority })}
+          disabled={ro}
+        />
+        <Hint>
+          <b className="font-medium text-foreground">
+            P{incident.priority} · {PRIORITIES[incident.priority].name}.
+          </b>{" "}
+          {PRIORITIES[incident.priority].definition}
+        </Hint>
+      </Field>
+      <Field label="Origine de la panne" full>
         <OriginButtons
           value={incident.origin}
-          onChange={(origin) => patch({ incidentId: incident.id, origin })}
+          onChange={(origin) => patch({ incidentId: id, origin })}
+          disabled={ro}
+        />
+        <Hint>
+          Obligatoire pour clôturer. Reste sur « À diagnostiquer » tant que la cause n'est pas sûre.
+        </Hint>
+      </Field>
+      <Field label="Intervention">
+        <InterventionButtons
+          value={incident.intervention}
+          onChange={(intervention) => patch({ incidentId: id, intervention })}
+          disabled={ro}
         />
       </Field>
-      <Field label="Mode d'intervention">
-        <Select
-          value={incident.intervention ?? "none"}
-          onValueChange={(v) =>
-            patch({
-              incidentId: incident.id,
-              intervention: v === "none" ? null : (v as "distance" | "surplace"),
-            })
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Non défini" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Non défini</SelectItem>
-            <SelectItem value="distance">À distance</SelectItem>
-            <SelectItem value="surplace">Sur place</SelectItem>
-          </SelectContent>
-        </Select>
+      <Field label="Solution">
+        <SolutionButtons
+          value={incident.solution}
+          onChange={(solution) => patch({ incidentId: id, solution })}
+          disabled={ro}
+        />
       </Field>
-      <Field label="Date d'intervention prévue">
+      <Field label="Intervention prévue le">
         <PlannedDateInput
           value={incident.plannedAt}
-          onChange={(plannedAt) => patch({ incidentId: incident.id, plannedAt })}
+          onChange={(plannedAt) => patch({ incidentId: id, plannedAt })}
+          disabled={ro}
         />
       </Field>
-    </>
+    </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  full,
+  children,
+}: {
+  label: string;
+  full?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+    <div className={full ? "col-span-2 flex flex-col gap-2" : "flex min-w-0 flex-col gap-2"}>
+      <p className="text-[14px] leading-5 text-foreground">{label}</p>
       {children}
     </div>
   );
+}
+
+function Hint({ children }: { children: React.ReactNode }) {
+  return <p className="text-[13px] leading-5 text-muted-foreground">{children}</p>;
 }

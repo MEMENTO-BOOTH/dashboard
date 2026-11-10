@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,75 +9,67 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Assignee } from "@/features/dashboard/alerts";
-import { ORIGIN_LABELS, type Origin, type Priority } from "../lib";
-
-export function PriorityButtons({
-  value,
-  onChange,
-}: {
-  value: Priority;
-  onChange: (p: Priority) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {([1, 2, 3, 4, 5] as Priority[]).map((p) => (
-        <Button
-          key={p}
-          size="sm"
-          variant={value === p ? "primary" : "outline"}
-          onClick={() => onChange(p)}
-        >
-          P{p}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-export function OriginButtons({
-  value,
-  onChange,
-}: {
-  value: Origin;
-  onChange: (o: Origin) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {(Object.entries(ORIGIN_LABELS) as [Origin, string][]).map(([key, label]) => (
-        <Button
-          key={key}
-          size="sm"
-          variant={value === key ? "primary" : "outline"}
-          onClick={() => onChange(key)}
-        >
-          {label}
-        </Button>
-      ))}
-    </div>
-  );
-}
+import type { Column } from "../lib";
 
 export function AssigneeSelect({
   value,
   assignees,
+  currentUserId,
   onChange,
+  disabled,
 }: {
   value: string | null;
   assignees: readonly Assignee[];
+  currentUserId?: string;
   onChange: (id: string | null) => void;
+  disabled?: boolean;
 }) {
   return (
-    <Select value={value ?? "none"} onValueChange={(v) => onChange(v === "none" ? null : v)}>
+    <Select
+      value={value ?? "none"}
+      onValueChange={(v) => onChange(v === "none" ? null : v)}
+      disabled={disabled}
+    >
       <SelectTrigger className="w-full">
-        <SelectValue placeholder="Non attribué" />
+        <SelectValue placeholder="Sans responsable" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="none">Non attribué</SelectItem>
+        <SelectItem value="none">Sans responsable</SelectItem>
         {assignees.map((a) => (
           <SelectItem key={a.id} value={a.id}>
             {a.nom}
+            {a.id === currentUserId ? " (moi)" : ""}
           </SelectItem>
         ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+export function ColumnSelect({
+  value,
+  columns,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  columns: readonly Column[];
+  onChange: (columnId: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger className="w-full">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {[...columns]
+          .sort((a, b) => a.position - b.position)
+          .map((c) => (
+            <SelectItem key={c.id} value={c.id}>
+              {c.name}
+            </SelectItem>
+          ))}
       </SelectContent>
     </Select>
   );
@@ -87,15 +78,18 @@ export function AssigneeSelect({
 export function PlannedDateInput({
   value,
   onChange,
+  disabled,
 }: {
   value: string | null;
   onChange: (value: string | null) => void;
+  disabled?: boolean;
 }) {
   return (
     <Input
       type="date"
       value={value ?? ""}
       onChange={(e) => onChange(e.target.value || null)}
+      disabled={disabled}
       className="w-full"
     />
   );

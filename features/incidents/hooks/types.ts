@@ -9,6 +9,8 @@ export type BoardData = {
   assignees: Assignee[];
   signalRules: SignalRule[];
   settings: Settings;
+  ignoredSignals: string[];
+  noteCounts: Record<string, number>;
   canManage: boolean;
   canSettings: boolean;
   currentUserId: string;

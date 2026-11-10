@@ -8,10 +8,12 @@ export function Sidebar({
   collapsed = false,
   user,
   permissions,
+  incidentsP1Count,
 }: {
   collapsed?: boolean;
   user: SidebarFooterProps;
   permissions: Permissions;
+  incidentsP1Count?: number;
 }) {
   const items = dashboardNav.filter(
     (item) => !item.requiredPermission || can(permissions, item.requiredPermission),
@@ -27,7 +29,13 @@ export function Sidebar({
 
       <div className="flex w-full flex-1 flex-col items-start gap-1 overflow-y-auto p-2 pb-[76px]">
         {items.map((item) => (
-          <SidebarItem key={item.href} href={item.href} icon={<item.icon />} label={item.title} />
+          <SidebarItem
+            key={item.href}
+            href={item.href}
+            icon={<item.icon />}
+            label={item.title}
+            badge={item.href === "/incidents" ? incidentsP1Count : undefined}
+          />
         ))}
       </div>
 

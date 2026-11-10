@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { moveIncidentAction, patchIncidentAction } from "../actions";
+import { type MoveActionResult, moveIncidentAction, patchIncidentAction } from "../actions";
 import type { Incident } from "../lib";
 import type { BoardData, PendingMove } from "./types";
 
@@ -14,8 +14,20 @@ export function useIncidentsBoard(data: BoardData) {
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    setIncidents(data.incidents);
+  }, [data.incidents]);
+
   function patchLocal(incident: Incident) {
     setIncidents((prev) => prev.map((i) => (i.id === incident.id ? incident : i)));
+  }
+
+  /** Le serveur a refusé : on remet la carte, on prévient, et on resynchronise le tableau. */
+  function failMove(incident: Incident | undefined, previousColumnId: string, message: string) {
+    if (incident) patchLocal({ ...incident, columnId: previousColumnId });
+    toast.error(message);
+    setSelectedId(null);
+    router.refresh();
   }
 
   function move(incidentId: string, toColumnId: string) {
@@ -25,18 +37,23 @@ export function useIncidentsBoard(data: BoardData) {
     patchLocal({ ...incident, columnId: toColumnId });
 
     startTransition(async () => {
+      let result: MoveActionResult;
       try {
-        const result = await moveIncidentAction({ incidentId, toColumnId });
-        if (result.ok) {
-          router.refresh();
-          return;
-        }
-        patchLocal({ ...incident, columnId: previousColumnId });
-        setPendingMove({ incidentId, toColumnId, need: result.need });
+        result = await moveIncidentAction({ incidentId, toColumnId });
       } catch (err) {
-        patchLocal({ ...incident, columnId: previousColumnId });
-        toast.error(err instanceof Error ? err.message : "Impossible de déplacer l'incident.");
+        failMove(incident, previousColumnId, errorMessage(err));
+        return;
       }
+      if (result.ok) {
+        router.refresh();
+        return;
+      }
+      if ("error" in result) {
+        failMove(incident, previousColumnId, result.error);
+        return;
+      }
+      patchLocal({ ...incident, columnId: previousColumnId });
+      setPendingMove({ incidentId, toColumnId, need: result.need });
     });
   }
 
@@ -44,6 +61,7 @@ export function useIncidentsBoard(data: BoardData) {
     const pending = pendingMove;
     if (!pending) return;
     setPendingMove(null);
+    const incident = incidents.find((i) => i.id === pending.incidentId);
     startTransition(async () => {
       try {
         await patchIncidentAction({ incidentId: pending.incidentId, ...value });
@@ -52,12 +70,13 @@ export function useIncidentsBoard(data: BoardData) {
           toColumnId: pending.toColumnId,
         });
         if (result.ok) {
-          const incident = incidents.find((i) => i.id === pending.incidentId);
           if (incident) patchLocal({ ...incident, columnId: pending.toColumnId });
           router.refresh();
+          return;
         }
+        if ("error" in result) failMove(incident, incident?.columnId ?? "", result.error);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Impossible de déplacer l'incident.");
+        failMove(incident, incident?.columnId ?? "", errorMessage(err));
       }
     });
   }
@@ -74,4 +93,10 @@ export function useIncidentsBoard(data: BoardData) {
     isPending,
     router,
   };
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error && err.message
+    ? err.message
+    : "Impossible de déplacer l'incident. Le tableau va se rafraîchir.";
 }

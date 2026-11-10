@@ -19,9 +19,10 @@ export type SidebarItemProps = {
   icon: React.ReactNode;
   label: string;
   indicator?: "right" | "down";
+  badge?: number;
 };
 
-export function SidebarItem({ href, icon, label, indicator }: SidebarItemProps) {
+export function SidebarItem({ href, icon, label, indicator, badge }: SidebarItemProps) {
   const pathname = usePathname();
   const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -40,6 +41,11 @@ export function SidebarItem({ href, icon, label, indicator }: SidebarItemProps) 
     >
       <span className="shrink-0 [&_svg]:size-4">{icon}</span>
       <span className="min-w-0 flex-1 truncate group-data-[collapsed]/sidebar:hidden">{label}</span>
+      {Boolean(badge) && (
+        <span className="flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-semibold text-destructive-foreground tabular-nums group-data-[collapsed]/sidebar:hidden">
+          {badge}
+        </span>
+      )}
       {indicator === "right" ? (
         <ChevronRight className="size-4 shrink-0 opacity-60 group-data-[collapsed]/sidebar:hidden" />
       ) : null}

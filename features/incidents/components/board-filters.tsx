@@ -1,5 +1,7 @@
 "use client";
 
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -8,10 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Toggle } from "@/components/ui/toggle";
 import type { Assignee } from "@/features/dashboard/alerts";
 import type { IncidentBorne } from "../api";
-import type { useIncidentFilters } from "../hooks/use-incident-filters";
-import { PRIORITIES } from "../lib";
+import {
+  defaultIncidentFilters,
+  hasActiveFilters,
+  type useIncidentFilters,
+} from "../hooks/use-incident-filters";
+import { ORIGIN_LABELS, PRIORITIES } from "../lib";
 
 export function BoardFilters({
   filters,
@@ -25,27 +32,12 @@ export function BoardFilters({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Input
-        placeholder="Rechercher un titre ou une borne…"
+        placeholder="Borne, bar, ville ou incident"
         value={filters.q}
         onChange={(e) => setFilters({ q: e.target.value })}
-        className="h-8 w-56"
+        leftIcon={<Search />}
+        wrapperClassName="w-72"
       />
-      <Select
-        value={filters.borne || "all"}
-        onValueChange={(v) => setFilters({ borne: v === "all" ? "" : v })}
-      >
-        <SelectTrigger size="sm">
-          <SelectValue placeholder="Toutes les bornes" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Toutes les bornes</SelectItem>
-          {bornes.map((b) => (
-            <SelectItem key={b.id} value={b.id}>
-              {b.code} · {b.nomLieu}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
       <Select
         value={filters.assignee || "all"}
         onValueChange={(v) => setFilters({ assignee: v === "all" ? "" : v })}
@@ -55,7 +47,8 @@ export function BoardFilters({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Tous les responsables</SelectItem>
-          <SelectItem value="none">Non attribué</SelectItem>
+          <SelectItem value="me">Mes incidents</SelectItem>
+          <SelectItem value="none">Sans responsable</SelectItem>
           {assignees.map((a) => (
             <SelectItem key={a.id} value={a.id}>
               {a.nom}
@@ -79,6 +72,60 @@ export function BoardFilters({
           ))}
         </SelectContent>
       </Select>
+      <Select
+        value={filters.origin || "all"}
+        onValueChange={(v) => setFilters({ origin: v === "all" ? "" : v })}
+      >
+        <SelectTrigger size="sm">
+          <SelectValue placeholder="Toutes origines" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Toutes origines</SelectItem>
+          {Object.entries(ORIGIN_LABELS).map(([key, label]) => (
+            <SelectItem key={key} value={key}>
+              {label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={filters.borne || "all"}
+        onValueChange={(v) => setFilters({ borne: v === "all" ? "" : v })}
+      >
+        <SelectTrigger size="sm">
+          <SelectValue placeholder="Toutes les bornes" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Toutes les bornes</SelectItem>
+          {bornes.map((b) => (
+            <SelectItem key={b.id} value={b.id}>
+              {b.code} · {b.nomLieu}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Toggle
+        pressed={filters.recurrent}
+        onPressedChange={(v) => setFilters({ recurrent: v })}
+        size="sm"
+      >
+        Récurrents
+      </Toggle>
+      <Toggle pressed={filters.serie} onPressedChange={(v) => setFilters({ serie: v })} size="sm">
+        Série
+      </Toggle>
+      <Toggle
+        pressed={filters.surplace}
+        onPressedChange={(v) => setFilters({ surplace: v })}
+        size="sm"
+      >
+        Sur place
+      </Toggle>
+      {hasActiveFilters(filters) && (
+        <Button variant="link" size="sm" onClick={() => setFilters(defaultIncidentFilters)}>
+          Effacer les filtres
+        </Button>
+      )}
     </div>
   );
 }

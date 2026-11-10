@@ -4,5 +4,7 @@ export {
   getAllIncidents,
   getIncidentById,
   getIncidentEvents,
+  getNoteCounts,
   getRelatedIncidents,
 } from "./incidents";
+export { getOpenP1Count } from "./summary";

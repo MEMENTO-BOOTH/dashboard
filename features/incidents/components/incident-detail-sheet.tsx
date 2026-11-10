@@ -1,13 +1,17 @@
 "use client";
 
+import { Ban, Check, Eye, RotateCcw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { VisuallyHidden } from "radix-ui";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import {
   SheetBody,
   SheetClose,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetRoot,
@@ -21,38 +25,67 @@ import {
   reopenIncidentAction,
 } from "../actions";
 import type { IncidentBorne } from "../api";
-import { type Column, columnByRole, type Incident } from "../lib";
+import {
+  type Column,
+  columnByRole,
+  type Incident,
+  isFinalRole,
+  observationDaysOf,
+  observationStatus,
+  type Settings,
+  type SignalRule,
+  TITLE_MAX,
+} from "../lib";
 import { DetailMainFields } from "./detail-main-fields";
 import { DetailRelatedBlock, DetailSignalBlock } from "./detail-related";
 import { DetailTimeline, type TimelineEvent } from "./detail-timeline";
 import { FalseAlarmDialog } from "./false-alarm-dialog";
+import { IncidentBadges } from "./incident-badges";
+import { IncidentSourceIcon } from "./incident-source-icon";
 import { PriorityPill } from "./priority-pill";
+import { StatusBanners } from "./status-banner";
 
 export function IncidentDetailSheet({
   incident,
   columns,
   bornesById,
   assignees,
+  allIncidents,
+  columnsById,
+  settings,
+  signalRules,
+  currentUserId,
   canManage,
   onClose,
   onMove,
+  onSelectIncident,
 }: {
   incident: Incident;
   columns: readonly Column[];
   bornesById: ReadonlyMap<string, IncidentBorne>;
   assignees: readonly Assignee[];
+  allIncidents: readonly Incident[];
+  columnsById: ReadonlyMap<string, Column>;
+  settings: Settings;
+  signalRules: readonly SignalRule[];
+  currentUserId: string;
   canManage: boolean;
   onClose: () => void;
   onMove: (incidentId: string, toColumnId: string) => void;
+  onSelectIncident: (incidentId: string) => void;
 }) {
   const router = useRouter();
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [related, setRelated] = useState<Incident[]>([]);
   const [falseAlarmOpen, setFalseAlarmOpen] = useState(false);
+  const [title, setTitle] = useState(incident.title);
   const [, startTransition] = useTransition();
-  const assigneeNameById = new Map(assignees.map((a) => [a.id, a.nom]));
-  const column = columns.find((c) => c.id === incident.columnId);
-  const isClosed = column?.role === "cloture" || column?.role === "rejete";
+  const assigneeById = new Map(assignees.map((a) => [a.id, a]));
+  const column = columnsById.get(incident.columnId);
+  const isClosed = column ? isFinalRole(column.role) : false;
+  const borne = bornesById.get(incident.borneId);
+  const now = new Date();
+  const place = borne ? [borne.code, borne.nomLieu, borne.ville].filter(Boolean).join(" · ") : "";
 
   const loadDetail = () => {
     startTransition(async () => {
@@ -62,9 +95,10 @@ export function IncidentDetailSheet({
     });
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: on recharge uniquement quand l'incident sélectionné change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rechargement et resynchronisation du titre uniquement quand l'incident sélectionné change
   useEffect(() => {
     loadDetail();
+    setTitle(incident.title);
   }, [incident.id]);
 
   function patch(partial: Parameters<typeof patchIncidentAction>[0]) {
@@ -78,13 +112,18 @@ export function IncidentDetailSheet({
     });
   }
 
-  function observe() {
-    const obsColumn = columnByRole(columns, "observation");
-    if (obsColumn) onMove(incident.id, obsColumn.id);
+  function submitTitle() {
+    const trimmed = title.trim();
+    if (!trimmed || trimmed === incident.title) {
+      setTitle(incident.title);
+      return;
+    }
+    patch({ incidentId: incident.id, title: trimmed });
   }
-  function close() {
-    const closeColumn = columnByRole(columns, "cloture");
-    if (closeColumn) onMove(incident.id, closeColumn.id);
+
+  function moveToRole(role: "observation" | "cloture") {
+    const target = columnByRole(columns, role);
+    if (target) onMove(incident.id, target.id);
   }
   async function reopen() {
     await reopenIncidentAction({ incidentId: incident.id });
@@ -97,55 +136,133 @@ export function IncidentDetailSheet({
     router.refresh();
   }
 
+  const obsColumn = columnByRole(columns, "observation");
+  const ready = column ? observationStatus(incident, column, now).state === "ready" : false;
+
   return (
     <SheetRoot open onOpenChange={(v) => !v && onClose()}>
-      <SheetContent>
-        <SheetHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <PriorityPill priority={incident.priority} />
-              <SheetTitle className="text-base font-semibold">
-                #{incident.number} · {incident.title}
-              </SheetTitle>
+      <SheetContent
+        className="max-w-[560px] border-border bg-card"
+        aria-describedby={undefined}
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).focus();
+        }}
+      >
+        <VisuallyHidden.Root>
+          <SheetTitle>{incident.title}</SheetTitle>
+          <SheetDescription>Fiche de l'incident #{incident.number}</SheetDescription>
+        </VisuallyHidden.Root>
+        <SheetHeader className="gap-4 border-border p-6">
+          <div className="flex items-start gap-3">
+            <IncidentSourceIcon incident={incident} size={38} />
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onBlur={submitTitle}
+                maxLength={TITLE_MAX}
+                aria-label="Titre de l'incident"
+                disabled={!canManage}
+                className="-mx-1.5 rounded-md border border-transparent bg-transparent px-1.5 text-[18px] font-semibold leading-[28px] text-card-foreground outline-none hover:border-border focus:border-ring focus:bg-background disabled:opacity-100"
+              />
+              <p className="truncate text-[14px] leading-5 text-muted-foreground">
+                {place}
+                {column ? ` · ${column.name}` : ""} · #{incident.number}
+              </p>
             </div>
             <SheetClose asChild>
-              <Button variant="ghost" size="sm">
-                Fermer
-              </Button>
+              <IconButton variant="ghost" size="sm" aria-label="Fermer la fiche">
+                <X />
+              </IconButton>
             </SheetClose>
           </div>
-          <p className="text-xs text-muted-foreground">{column?.name}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <PriorityPill priority={incident.priority} withName />
+            <IncidentBadges
+              incident={incident}
+              allIncidents={allIncidents}
+              columnsById={columnsById}
+              settings={settings}
+              className="contents"
+            />
+          </div>
+          {column && (
+            <StatusBanners incident={incident} column={column} settings={settings} now={now} />
+          )}
         </SheetHeader>
 
-        <SheetBody className="flex flex-col gap-5">
-          <DetailMainFields incident={incident} assignees={assignees} patch={patch} />
-          <DetailSignalBlock incident={incident} />
-          <DetailRelatedBlock borne={bornesById.get(incident.borneId)} related={related} />
+        <SheetBody className="flex flex-col gap-8 p-6">
+          <DetailMainFields
+            incident={incident}
+            columns={columns}
+            assignees={assignees}
+            currentUserId={currentUserId}
+            canManage={canManage}
+            patch={patch}
+            onMove={onMove}
+          />
+          <DetailSignalBlock
+            incident={incident}
+            signalRules={signalRules}
+            settings={settings}
+            isOpen={!isClosed}
+          />
+          <DetailRelatedBlock
+            borne={borne}
+            related={related}
+            columnsById={columnsById}
+            onSelect={onSelectIncident}
+          />
           <DetailTimeline
             incidentId={incident.id}
             events={events}
-            authorName={(id) => assigneeNameById.get(id) ?? "un membre de l'équipe"}
+            author={(id) => {
+              const a = assigneeById.get(id);
+              return a ? { nom: a.nom, logoUrl: a.logo_url } : { nom: "Équipe", logoUrl: null };
+            }}
             canManage={canManage}
             onNoteAdded={loadDetail}
           />
         </SheetBody>
 
         {canManage && (
-          <SheetFooter>
+          <SheetFooter className="border-border p-4">
             {isClosed ? (
-              <Button variant="outline" onClick={reopen}>
+              <Button
+                variant="outline"
+                className="ml-auto"
+                onClick={reopen}
+                iconStart={<RotateCcw className="size-4" />}
+              >
                 Rouvrir
               </Button>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => setFalseAlarmOpen(true)}>
+              <>
+                <Button
+                  variant="ghost"
+                  className="mr-auto text-destructive hover:text-destructive"
+                  onClick={() => setFalseAlarmOpen(true)}
+                  iconStart={<Ban className="size-4" />}
+                >
                   Fausse alerte
                 </Button>
-                <Button variant="outline" onClick={observe}>
-                  Surveiller 7j
+                {obsColumn && column?.role !== "observation" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => moveToRole("observation")}
+                    iconStart={<Eye className="size-4" />}
+                  >
+                    Surveiller {observationDaysOf(obsColumn)} j
+                  </Button>
+                )}
+                <Button
+                  onClick={() => moveToRole("cloture")}
+                  iconStart={<Check className="size-4" />}
+                >
+                  {ready ? "Clôturer, aucune récidive" : "Clôturer"}
                 </Button>
-                <Button onClick={close}>Clôturer</Button>
-              </div>
+              </>
             )}
           </SheetFooter>
         )}
@@ -154,6 +271,9 @@ export function IncidentDetailSheet({
       <FalseAlarmDialog
         open={falseAlarmOpen}
         hasSignal={Boolean(incident.signalType)}
+        borneCode={borne?.code}
+        signalLabel={signalRules.find((r) => r.signalType === incident.signalType)?.label}
+        rejectColumnName={columnByRole(columns, "rejete")?.name}
         onCancel={() => setFalseAlarmOpen(false)}
         onConfirm={confirmFalseAlarm}
       />
