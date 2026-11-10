@@ -592,7 +592,8 @@ export type Database = {
       transactions: {
         Row: {
           anomalie_impression: string | null;
-          borne_id: string;
+          borne_id: string | null;
+          borne_nom: string | null;
           created_at: string;
           delai_avant_inhibited: number | null;
           feuilles_apres: number | null;
@@ -609,7 +610,8 @@ export type Database = {
         };
         Insert: {
           anomalie_impression?: string | null;
-          borne_id: string;
+          borne_id?: string | null;
+          borne_nom?: string | null;
           created_at?: string;
           delai_avant_inhibited?: number | null;
           feuilles_apres?: number | null;
@@ -626,7 +628,8 @@ export type Database = {
         };
         Update: {
           anomalie_impression?: string | null;
-          borne_id?: string;
+          borne_id?: string | null;
+          borne_nom?: string | null;
           created_at?: string;
           delai_avant_inhibited?: number | null;
           feuilles_apres?: number | null;

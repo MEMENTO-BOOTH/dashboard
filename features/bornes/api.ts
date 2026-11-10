@@ -47,6 +47,7 @@ export async function getBornesWithLatestState(): Promise<BorneTableRow[]> {
   }
   const caByBorne = new Map<string, number>();
   for (const t of txRes.data) {
+    if (!t.borne_id) continue;
     caByBorne.set(t.borne_id, (caByBorne.get(t.borne_id) ?? 0) + Number(t.montant));
   }
   const partenaireById = new Map(partenairesRes.data.map((p) => [p.id, p]));

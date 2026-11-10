@@ -37,6 +37,7 @@ export async function getBorneCARanking(days = 30): Promise<BorneRanking> {
     supabase.from("bornes").select("id, nom_lieu"),
     fetchAllTransactions(supabase, { sinceISO: since, montantPositif: true }, [
       "borne_id",
+      "borne_nom",
       "montant",
     ]),
   ]);
@@ -44,15 +45,16 @@ export async function getBorneCARanking(days = 30): Promise<BorneRanking> {
   if (bornesRes.error) throw new Error(bornesRes.error.message);
 
   const totals = new Map<string, number>();
+  const deleted = new Map<string, number>();
   for (const t of tx) {
-    if (!t.borne_id) continue;
-    totals.set(t.borne_id, (totals.get(t.borne_id) ?? 0) + t.montant);
+    if (t.borne_id) totals.set(t.borne_id, (totals.get(t.borne_id) ?? 0) + t.montant);
+    else if (t.borne_nom) deleted.set(t.borne_nom, (deleted.get(t.borne_nom) ?? 0) + t.montant);
   }
 
-  const rows = (bornesRes.data ?? []).map((b) => ({
-    label: b.nom_lieu,
-    value: totals.get(b.id) ?? 0,
-  }));
+  const rows = [
+    ...(bornesRes.data ?? []).map((b) => ({ label: b.nom_lieu, value: totals.get(b.id) ?? 0 })),
+    ...[...deleted].map(([nom, value]) => ({ label: `${nom} (supprimée)`, value })),
+  ];
   const sortedDesc = [...rows].sort((a, b) => b.value - a.value);
 
   return {

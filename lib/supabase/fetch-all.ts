@@ -17,13 +17,21 @@ export type TxFilters = {
 export type TxLite = {
   id?: string;
   borne_id: string | null;
+  borne_nom?: string | null;
   montant: number;
   paiement_at: string;
   impression_declenchee?: boolean | null;
   flag?: string | null;
 };
 
-type TxColumn = "id" | "borne_id" | "montant" | "paiement_at" | "impression_declenchee" | "flag";
+type TxColumn =
+  | "id"
+  | "borne_id"
+  | "borne_nom"
+  | "montant"
+  | "paiement_at"
+  | "impression_declenchee"
+  | "flag";
 
 function buildPageQuery(supabase: Admin, filters: TxFilters, select: string, from: number) {
   let q = supabase
@@ -44,6 +52,7 @@ function normalizeRow(row: TxLite): TxLite {
   return {
     id: row.id,
     borne_id: row.borne_id ?? null,
+    borne_nom: row.borne_nom ?? null,
     montant: Number(row.montant ?? 0),
     paiement_at: row.paiement_at,
     impression_declenchee: row.impression_declenchee ?? null,
